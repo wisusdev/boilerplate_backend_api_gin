@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+{{template "header" .}}
+<body>
+    {{template "navbar" .}}
+
+    <main class="container">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <p class="text-center mb-0">{{call .Translate "user_details"}}</p>
+                <a href="/users" class="btn btn-secondary btn-sm">{{call .Translate "back_to_users"}}</a>
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">{{.Data.Name}}</h5>
+                <p class="card-text">{{call .Translate "email"}}: {{.Data.Email}}</p>
+                <p class="card-text">ID: {{.Data.ID}}</p>
+                <p class="card-text">{{call .Translate "created_at"}}: {{.Data.CreatedAt}}</p>
+                <p class="card-text">{{call .Translate "updated_at"}}: {{.Data.UpdatedAt}}</p>
+                <a href="/users/edit/{{.Data.ID}}" class="btn btn-warning">{{call .Translate "edit_user"}}</a>
+                <a href="/users/delete/{{.Data.ID}}" class="btn btn-danger">{{call .Translate "delete_user"}}</a>
+            </div>
+        </div>
+    </main>
+
+    {{template "footer" .}}
+</body>
+</html>

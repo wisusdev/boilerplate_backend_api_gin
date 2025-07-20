@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+{{template "header" .}}
+<body>
+    {{template "navbar" .}}
+    <main class="container-fluid main-content d-flex align-items-center">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-4">
+                    {{template "alert" .}}
+                    <div class="card shadow">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <p class="text-center mb-0">{{call .Translate "register_me"}}</p>
+                            <a href="/auth/login" class="btn btn-secondary btn-sm">{{call .Translate "login_title"}}</a>
+                        </div>
+                        <div class="card-body">
+                            <form method="POST" action="/auth/register">
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">{{call .Translate "name"}}</label>
+                                    <input type="text" class="form-control" id="name" name="name" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">{{call .Translate "email"}}</label>
+                                    <input type="email" class="form-control" id="email" name="email" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="password" class="form-label">{{call .Translate "password"}}</label>
+                                    <input type="password" class="form-control" id="password" name="password" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="confirm_password" class="form-label">{{call .Translate "confirm_password"}}</label>
+                                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary">{{call .Translate "register_me"}}</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    {{template "footer" .}}
+</body>
+</html>

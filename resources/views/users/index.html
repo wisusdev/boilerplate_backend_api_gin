@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+{{template "header" .}}
+<body>
+    {{template "navbar" .}}
+    <main class="container">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <p class="text-center mb-0">{{call .Translate "users_crud_title"}}</p>
+                <a href="/users/create" class="btn btn-primary btn-sm">{{call .Translate "create_user"}}</a>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered">
+                        <thead>
+                            <tr>
+                                <th>{{call .Translate "id"}}</th>
+                                <th>{{call .Translate "name"}}</th>
+                                <th>{{call .Translate "email"}}</th>
+                                <th>{{call .Translate "actions"}}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{range .Data}}
+                            <tr>
+                                <td>{{.ID}}</td>
+                                <td>{{.Name}}</td>
+                                <td>{{.Email}}</td>
+                                <td>
+                                    <a href="/users/show/{{.ID}}" class="btn btn-info">{{call $.Translate "view"}}</a>
+                                    <a href="/users/edit/{{.ID}}" class="btn btn-warning">{{call $.Translate "edit"}}</a>
+                                    <form action="/users/delete/{{.ID}}" method="POST" class="d-inline">
+                                        <input type="hidden" name="_method" value="DELETE">
+                                        <button type="submit" class="btn btn-danger">{{call $.Translate "delete"}}</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {{end}}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    {{template "footer"}}
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+{{define "header"}}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{call .Translate "go_course_title"}}</title>
+    <link rel="stylesheet" href="/public/css/bootstrap.css">
+    <link rel="stylesheet" href="/public/css/blog.css">
+    <link rel="stylesheet" href="/public/css/estilos.css">
+</head>
+{{end}}
+<body>
+    {{define "navbar"}}
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-3">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">{{call .Translate "go_course_brand"}}</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+                aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item"><a class="nav-link" aria-current="page" href="/">{{call .Translate "home"}}</a></li>
+                    
+                    {{if .IsAuthenticated}}
+                        <!-- Enlaces para usuarios autenticados -->
+                        <li class="nav-item"><a class="nav-link" href="/users">{{call .Translate "mysql_crud"}}</a></li>
+                    {{end}}
+                </ul>
+                
+                <!-- Dropdown de idioma -->
+                <form method="POST" action="/set-lang" class="d-flex align-items-center me-2">
+                    <label>
+                        <select name="lang" class="form-select form-select-sm" onchange="this.form.submit()">
+                            <option value="es" {{if eq .Lang "es"}}selected{{end}}>{{call .Translate "spanish"}}</option>
+                            <option value="en" {{if eq .Lang "en"}}selected{{end}}>{{call .Translate "english"}}</option>
+                        </select>
+                    </label>
+                </form>
+                <!-- Fin Dropdown de idioma -->
+                <!-- Menú del usuario -->
+                <ul class="navbar-nav">
+                    {{if .IsAuthenticated}}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                {{call .Translate "hello"}}, {{.User.FirstName}} {{.User.LastName}}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="/auth/logout">{{call .Translate "logout"}}</a></li>
+                            </ul>
+                        </li>
+                    {{else}}
+                        <li class="nav-item"><a class="nav-link" href="/auth/login">{{call .Translate "login"}}</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/auth/register">{{call .Translate "register"}}</a></li>
+                    {{end}}
+                </ul>
+            </div>
+        </div>
+    </nav>
+    {{end}}
+
+    {{define "alert"}}
+        {{if .AlertMessage}}
+        <div class="alert alert-{{.AlertId}} alert-dismissible fade show" role="alert">
+            {{.AlertMessage}}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {{end}}
+    {{end}}
+
+    {{define "footer"}}
+    <script src="/public/js/jquery-2.0.0.min.js"></script>
+    <script src="/public/js/bootstrap.js"></script>
+    {{end}}
+</body>
+
+</html>

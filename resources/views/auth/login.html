@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+{{template "header" .}}
+<body>
+    {{template "navbar" .}}
+    <main class="container-fluid main-content d-flex align-items-center">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-4">
+                    {{template "alert" .}}
+                    <div class="card shadow">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <p class="text-center mb-0">{{call .Translate "login_title"}}</p>
+                            <a href="/auth/register" class="btn btn-secondary btn-sm">{{call .Translate "register"}}</a>
+                        </div>
+                        <div class="card-body">
+                            <form method="POST" action="/auth/login">
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">{{call .Translate "email"}}</label>
+                                    <input type="email" class="form-control" id="email" name="email" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="password" class="form-label">{{call .Translate "password"}}</label>
+                                    <input type="password" class="form-control" id="password" name="password" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary">{{call .Translate "login"}}</button>
+                            </form>
+                            <hr>
+                            <a href="/auth/forgot-password" class="d-block text-decoration-none mt-3">{{call .Translate "forgot_password"}}</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    {{template "footer" .}}
+</body>
+</html>

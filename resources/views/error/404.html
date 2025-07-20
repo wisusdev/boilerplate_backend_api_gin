@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+{{template "header"}}
+<body>
+    {{template "navbar"}}
+
+    <main class="container">
+        <h1>{{call .Translate "not_found_title"}}</h1>
+        <p class="rojo">{{call .Translate "not_found_message"}}</p>
+    </main>
+
+    {{template "footer"}}
+
+    <script src="/public/js/funciones.js"></script>
+</body>
+</html>

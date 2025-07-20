@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+{{template "header" .}}
+
+<body>
+    {{template "navbar" .}}
+    
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <h1>{{call .Translate "home"}}</h1>
+                
+                {{if .IsAuthenticated}}
+                    <div class="alert alert-success">
+                        <h4>{{call .Translate "welcome_user"}}, {{.User.FirstName}}!</h4>
+                        <p>{{call .Translate "authenticated_message"}}</p>
+                    </div>
+                {{else}}
+                    <div class="alert alert-info">
+                        <h4>{{call .Translate "hello_visitor"}}</h4>
+                        <p>{{call .Translate "login_prompt_pre"}} <a href="/auth/login">{{call .Translate "login"}}</a> {{call .Translate "login_prompt_post"}}</p>
+                    </div>
+                {{end}}
+                
+                <p>{{call .Translate "home_description"}}</p>
+            </div>
+        </div>
+    </div>
+
+    {{template "footer" .}}
+</body>
+</html>
