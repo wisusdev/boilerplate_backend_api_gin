@@ -3,7 +3,7 @@ package models_roles_and_permissions
 import (
 	"fmt"
 	"semita/app/data/structs"
-	"semita/common/nulltypes"
+	"semita/core/common/nulltypes"
 	"semita/core/database/database_connections"
 	"strings"
 )
