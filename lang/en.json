@@ -42,6 +42,7 @@
 	"query_string": "Query String",
 	"structures": "Structures",
 	"form": "Form",
+	"users": "Users",
 	"mysql_crud": "MySQL CRUD",
 	"static_files": "Static files",
 	"spanish": "Spanish",
