@@ -17,6 +17,7 @@ func View(context *gin.Context, viewPath string, title string, data interface{})
 	fullViewPath := filepath.Join("resources", "views", viewPath)
 	tmpl := template.Must(template.ParseFiles(fullViewPath, config.AppConfig().Layout))
 
+	context.Header("Content-Type", "text/html; charset=utf-8")
 	err := tmpl.Execute(context.Writer, authData)
 
 	if err != nil {
