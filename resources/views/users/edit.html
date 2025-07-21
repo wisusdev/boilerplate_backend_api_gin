@@ -14,8 +14,12 @@
                 <form method="POST" action="/users/update/{{.Data.ID}}">
                     <input type="hidden" name="_method" value="PUT">
                     <div class="mb-3">
-                        <label for="name" class="form-label">{{call .Translate "name"}}</label>
-                        <input type="text" class="form-control" id="name" name="name" value="{{.Data.Name}}" required>
+                        <label for="first_name" class="form-label">{{call .Translate "name"}}</label>
+                        <input type="text" class="form-control" id="first_name" name="first_name" value="{{.Data.FirstName}}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="last_name" class="form-label">{{call .Translate "name"}}</label>
+                        <input type="text" class="form-control" id="last_name" name="last_name" value="{{.Data.LastName}}" required>
                     </div>
                     <div class="mb-3">
                         <label for="email" class="form-label">{{call .Translate "email"}}</label>

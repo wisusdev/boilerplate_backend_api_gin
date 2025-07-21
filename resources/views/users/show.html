@@ -11,7 +11,7 @@
                 <a href="/users" class="btn btn-secondary btn-sm">{{call .Translate "back_to_users"}}</a>
             </div>
             <div class="card-body">
-                <h5 class="card-title">{{.Data.Name}}</h5>
+                <h5 class="card-title">{{.Data.FirstName}} {{.Data.LastName}}</h5>
                 <p class="card-text">{{call .Translate "email"}}: {{.Data.Email}}</p>
                 <p class="card-text">ID: {{.Data.ID}}</p>
                 <p class="card-text">{{call .Translate "created_at"}}: {{.Data.CreatedAt}}</p>

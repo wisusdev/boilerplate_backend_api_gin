@@ -24,15 +24,17 @@
                             {{range .Data}}
                             <tr>
                                 <td>{{.ID}}</td>
-                                <td>{{.Name}}</td>
+                                <td>{{.FirstName}} {{.LastName}}</td>
                                 <td>{{.Email}}</td>
                                 <td>
-                                    <a href="/users/show/{{.ID}}" class="btn btn-info">{{call $.Translate "view"}}</a>
-                                    <a href="/users/edit/{{.ID}}" class="btn btn-warning">{{call $.Translate "edit"}}</a>
-                                    <form action="/users/delete/{{.ID}}" method="POST" class="d-inline">
-                                        <input type="hidden" name="_method" value="DELETE">
-                                        <button type="submit" class="btn btn-danger">{{call $.Translate "delete"}}</button>
-                                    </form>
+                                    <div class="d-flex justify-content-between align-items-center gap-1 w-100">
+                                        <a href="/users/show/{{.ID}}" class="btn btn-info">{{call $.Translate "view"}}</a>
+                                        <a href="/users/edit/{{.ID}}" class="btn btn-warning">{{call $.Translate "edit"}}</a>
+                                        <form action="/users/delete/{{.ID}}" method="POST" class="d-inline">
+                                            <input type="hidden" name="_method" value="DELETE">
+                                            <button type="submit" class="btn btn-danger">{{call $.Translate "delete"}}</button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                             {{end}}
