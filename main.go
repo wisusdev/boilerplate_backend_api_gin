@@ -24,7 +24,6 @@ func main() {
 		return
 	} else if len(os.Args) > 1 {
 		// Si hay argumentos, ejecuta los comandos de Cobra
-		fmt.Println("🚀 Ejecutando comandos de Semita CLI...")
 		bootstrap.Execute() // Ejecutar comandos de Cobra cuando hay argumentos
 	}
 
