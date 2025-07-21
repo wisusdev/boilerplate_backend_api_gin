@@ -20,6 +20,11 @@ func Commands() {
 	RootCmd.AddCommand(commands.MigrateFreshCmd)
 	RootCmd.AddCommand(commands.MigrateRollbackCmd)
 	RootCmd.AddCommand(commands.MakeMigrationCmd)
+	RootCmd.AddCommand(commands.KeyGenerateCmd)
+	RootCmd.AddCommand(commands.OauthKeysCmd)
+	RootCmd.AddCommand(commands.OauthClientCmd)
+	RootCmd.AddCommand(commands.SeedAllCommand)
+	RootCmd.AddCommand(commands.SeedRunCommand)
 }
 
 // Execute inicializa y ejecuta los comandos
