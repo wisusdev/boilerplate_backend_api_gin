@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"semita/app/data/models"
 	"semita/app/data/structs"
-	"semita/app/http/requests"
 	"semita/app/notifications"
 	"semita/config"
 	"semita/core/helpers"
@@ -20,10 +19,8 @@ func AuthLogin(context *gin.Context) {
 }
 
 func AuthLoginPost(context *gin.Context) {
-	var request requests.LoginRequest
-
-	email := request.Data.Attributes.Email
-	password := request.Data.Attributes.Password
+	email := context.PostForm("email")
+	password := context.PostForm("password")
 
 	if email == "" || password == "" {
 		helpers.Logs("ERROR", "Email and password are required")
