@@ -14,7 +14,18 @@ import (
 func View(context *gin.Context, viewPath string, title string, data interface{}) {
 	authData := AuthSessionService(context.Writer, context.Request, title, data)
 
-	fullViewPath := filepath.Join("resources", "views", viewPath)
+	if viewPath == "" {
+		Logs("ERROR", "View path cannot be empty")
+		http.Error(context.Writer, "View path cannot be empty", http.StatusInternalServerError)
+		return
+	}
+
+	// Si viewPath contiene una extensión, la eliminamos
+	if filepath.Ext(viewPath) != "" {
+		viewPath = viewPath[:len(viewPath)-len(filepath.Ext(viewPath))]
+	}
+
+	fullViewPath := filepath.Join("resources", "views", viewPath+".html")
 	tmpl := template.Must(template.ParseFiles(fullViewPath, config.AppConfig().Layout))
 
 	context.Header("Content-Type", "text/html; charset=utf-8")
@@ -22,6 +33,7 @@ func View(context *gin.Context, viewPath string, title string, data interface{})
 
 	if err != nil {
 		Logs("ERROR", fmt.Sprintf("Error al renderizar la vista: %v", err))
+
 		http.Error(context.Writer, "Error interno al renderizar la vista", http.StatusInternalServerError)
 	}
 }
