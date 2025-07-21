@@ -1,19 +1,12 @@
 package web
 
 import (
-	"net/http"
-	"semita/config"
-	"text/template"
+	"semita/core/helpers"
 
 	"github.com/gin-gonic/gin"
 )
 
 func Error404(context *gin.Context) {
-	templateError404 := template.Must(template.ParseFiles("resources/error/404.html", config.AppConfig().Layout))
-	err := templateError404.Execute(context.Writer, nil)
-	if err != nil {
-		context.String(http.StatusInternalServerError, "Error al cargar la plantilla 404")
-		return
-	}
-	context.Status(http.StatusNotFound)
+	context.Status(404)
+	helpers.View(context, "error/404.html", "Página no encontrada", nil)
 }
