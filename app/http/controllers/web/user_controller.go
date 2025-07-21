@@ -2,15 +2,12 @@ package web
 
 import (
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"net/http"
 	"semita/app/data/models"
 	"semita/app/data/structs"
-	"semita/config"
 	"semita/core/helpers"
 	"strconv"
-	"text/template"
-
-	"github.com/gin-gonic/gin"
 )
 
 func UserIndex(context *gin.Context) {
@@ -23,26 +20,11 @@ func UserIndex(context *gin.Context) {
 		return
 	}
 
-	var viewData = helpers.AuthSessionService(context.Writer, context.Request, "User Index", users)
-
-	var templateIndexPath = "resources/users/index.html"
-	var templateIndex = template.Must(template.ParseFiles(templateIndexPath, config.AppConfig().Layout))
-	var errorExecuteTemplate = templateIndex.Execute(context.Writer, viewData)
-	if errorExecuteTemplate != nil {
-		fmt.Println("Error al ejecutar la plantilla:", errorExecuteTemplate)
-		return
-	}
+	helpers.View(context, "users/index", "User Index", users)
 }
 
 func UserCreate(context *gin.Context) {
-	var viewData = helpers.AuthSessionService(context.Writer, context.Request, "User Create", nil)
-	var templateCreatePath = "resources/users/create.html"
-	var templateCreate = template.Must(template.ParseFiles(templateCreatePath, config.AppConfig().Layout))
-	var errorExecuteTemplate = templateCreate.Execute(context.Writer, viewData)
-	if errorExecuteTemplate != nil {
-		fmt.Println("Error al ejecutar la plantilla:", errorExecuteTemplate)
-		return
-	}
+	helpers.View(context, "users/create", "User Create", nil)
 }
 
 func UserStore(context *gin.Context) {
@@ -71,15 +53,7 @@ func UserShow(context *gin.Context) {
 		return
 	}
 
-	var viewData = helpers.AuthSessionService(context.Writer, context.Request, "User Create", user)
-
-	var templateShowPath = "resources/users/show.html"
-	var templateShow = template.Must(template.ParseFiles(templateShowPath, config.AppConfig().Layout))
-	var errorExecuteTemplate = templateShow.Execute(context.Writer, viewData)
-	if errorExecuteTemplate != nil {
-		fmt.Println("Error al ejecutar la plantilla:", errorExecuteTemplate)
-		return
-	}
+	helpers.View(context, "users/show", "User Show", user)
 }
 
 func UserEdit(context *gin.Context) {
@@ -91,15 +65,7 @@ func UserEdit(context *gin.Context) {
 		return
 	}
 
-	var viewData = helpers.AuthSessionService(context.Writer, context.Request, "User Edit", user)
-
-	var templateEditPath = "resources/users/edit.html"
-	var templateEdit = template.Must(template.ParseFiles(templateEditPath, config.AppConfig().Layout))
-	var errorExecuteTemplate = templateEdit.Execute(context.Writer, viewData)
-	if errorExecuteTemplate != nil {
-		fmt.Println("Error al ejecutar la plantilla:", errorExecuteTemplate)
-		return
-	}
+	helpers.View(context, "users/edit", "User Edit", user)
 }
 
 func UserUpdate(context *gin.Context) {
