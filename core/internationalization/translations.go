@@ -47,8 +47,6 @@ func LoadTranslations() {
 
 		translations[lang] = m
 	}
-
-	fmt.Println("✅ Traducciones cargadas correctamente")
 }
 
 func Translate(key, lang string) string {
