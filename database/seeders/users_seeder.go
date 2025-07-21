@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 	"semita/core/database/database_connections"
-	"semita/core/database/seeders"
+	"semita/core/database/generate_seeders"
 	"semita/core/helpers"
 
 	"golang.org/x/crypto/bcrypt"
@@ -12,13 +12,13 @@ import (
 
 // UsersSeeder seeder para usuarios de prueba
 type UsersSeeder struct {
-	seeders.BaseSeeder
+	generate_seeders.BaseSeeder
 }
 
 // NewUsersSeeder crea una nueva instancia del seeder
 func NewUsersSeeder() *UsersSeeder {
 	return &UsersSeeder{
-		BaseSeeder: seeders.BaseSeeder{
+		BaseSeeder: generate_seeders.BaseSeeder{
 			DB:   database_connections.DatabaseConnectSQL(),
 			Name: "users_seeder",
 		},
