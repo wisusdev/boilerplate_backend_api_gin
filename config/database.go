@@ -61,7 +61,7 @@ func DatabaseConfig() *Connections {
 
 		SQLite: Sqlite{
 			Driver:   "sqlite3",
-			Database: "database.db",
+			Database: "database",
 		},
 		MySQL: Mysql{
 			Driver:   "mysql",
