@@ -13,8 +13,8 @@
 	"email": "Correo",
 	"password": "Contraseña",
 	"login": "Iniciar Sesión",
-	"forgot_password": "¿Olvidaste tu contraseña?"
-	,
+	"forgot_password": "¿Olvidaste tu contraseña?",
+	
 	"dummyjson_title": "DummyJSON",
 	"create_user": "Crear Usuario",
 	"id": "ID",
