@@ -34,12 +34,19 @@ func scanUserRow(scanner interface {
 }) (structs.UserStruct, error) {
 	var user structs.UserStruct
 	var createdAtStr, updatedAtStr string
+	var avatarPtr *string
 
 	err := scanner.Scan(
 		&user.ID, &user.FirstName, &user.LastName, &user.Username,
-		&user.Avatar, &user.Language, &user.Email, &user.Password,
+		&avatarPtr, &user.Language, &user.Email, &user.Password,
 		&createdAtStr, &updatedAtStr,
 	)
+
+	if avatarPtr != nil {
+		user.Avatar = *avatarPtr
+	} else {
+		user.Avatar = ""
+	}
 
 	if err != nil {
 		return structs.UserStruct{}, err
