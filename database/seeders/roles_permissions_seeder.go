@@ -4,19 +4,19 @@ import (
 	"log"
 	"semita/app/data/structs"
 	"semita/core/database/database_connections"
-	"semita/core/database/seeders"
+	"semita/core/database/generate_seeders"
 	"semita/core/roles_and_permissions/models_roles_and_permissions"
 )
 
 // RolesPermissionsSeeder seeder para roles y permisos
 type RolesPermissionsSeeder struct {
-	seeders.BaseSeeder
+	generate_seeders.BaseSeeder
 }
 
 // NewRolesPermissionsSeeder crea una nueva instancia del seeder
 func NewRolesPermissionsSeeder() *RolesPermissionsSeeder {
 	return &RolesPermissionsSeeder{
-		BaseSeeder: seeders.BaseSeeder{
+		BaseSeeder: generate_seeders.BaseSeeder{
 			DB:   database_connections.DatabaseConnectSQL(),
 			Name: "roles_permissions_seeder",
 		},
