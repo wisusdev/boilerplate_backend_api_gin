@@ -41,7 +41,6 @@ func (us *UsersSeeder) GetTables() []string {
 
 // Seed ejecuta el seeding de usuarios
 func (us *UsersSeeder) Seed() error {
-	log.Println("Seeding users...")
 
 	// 12345678aA
 	var passwordHash, _ = bcrypt.GenerateFromPassword([]byte("12345678aA"), bcrypt.DefaultCost)

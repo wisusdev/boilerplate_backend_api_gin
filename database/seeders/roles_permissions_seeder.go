@@ -40,8 +40,6 @@ func (rps *RolesPermissionsSeeder) GetTables() []string {
 
 // Seed ejecuta el seeding de roles y permisos
 func (rps *RolesPermissionsSeeder) Seed() error {
-	log.Println("Seeding roles and permissions...")
-
 	createdPermissions := rps.createPermissions()
 	createdRoles := rps.createRoles()
 
@@ -64,12 +62,10 @@ func (rps *RolesPermissionsSeeder) Seed() error {
 		"view-dashboard",
 	})
 
-	log.Println("Roles and permissions seeding completed successfully!")
 	return nil
 }
 
 func (rps *RolesPermissionsSeeder) createPermissions() map[string]*structs.PermissionStruct {
-	log.Println("Creating permissions...")
 	permissions := []structs.CreatePermissionStruct{
 		{Name: "create-users", GuardName: "web", Description: "Crear usuarios"},
 		{Name: "edit-users", GuardName: "web", Description: "Editar usuarios"},
@@ -101,13 +97,11 @@ func (rps *RolesPermissionsSeeder) createPermissions() map[string]*structs.Permi
 			continue
 		}
 		createdPermissions[permData.Name] = permission
-		log.Printf("Created permission: %s", permission.Name)
 	}
 	return createdPermissions
 }
 
 func (rps *RolesPermissionsSeeder) createRoles() map[string]*structs.RoleStruct {
-	log.Println("Creating roles...")
 	roles := []structs.CreateRoleStruct{
 		{Name: "super-admin", GuardName: "web", Description: "Super administrador con todos los permisos"},
 		{Name: "admin", GuardName: "web", Description: "Administrador del sistema"},
@@ -124,7 +118,6 @@ func (rps *RolesPermissionsSeeder) createRoles() map[string]*structs.RoleStruct 
 			continue
 		}
 		createdRoles[roleData.Name] = role
-		log.Printf("Created role: %s", role.Name)
 	}
 	return createdRoles
 }
@@ -137,7 +130,6 @@ func (rps *RolesPermissionsSeeder) assignAllPermissionsToRole(roleName string, r
 				log.Printf("Error assigning permission '%s' to role '%s': %v", permission.Name, roleName, err)
 			}
 		}
-		log.Printf("Assigned all permissions to %s role", roleName)
 	}
 }
 
@@ -151,6 +143,5 @@ func (rps *RolesPermissionsSeeder) assignPermissionsToRole(roleName string, role
 				}
 			}
 		}
-		log.Printf("Assigned permissions to %s role", roleName)
 	}
 }
