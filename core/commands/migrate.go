@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"semita/core/database/database_connections"
 	"semita/core/database/generate_migrations"
 	"semita/database/migrations"
 	"strings"
@@ -15,36 +14,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Función auxiliar para conectar y registrar migraciones
-func withMigrator(action func(migrator *generate_migrations.Migrator)) {
-	fmt.Println("🔌 Conectando a la base de datos...")
-	db := database_connections.DatabaseConnectSQL()
-	defer db.Close()
-
-	fmt.Println("🛠️  Inicializando migrator...")
-	migrator := generate_migrations.NewMigrator(db)
-
-	fmt.Println("📝 Registrando migraciones...")
-	migrator.Register(migrations.NewCreateUsersTable())
-	migrator.Register(migrations.NewCreatePasswordResetsTable())
-	migrator.Register(migrations.NewCreateOAuthClientsTable())
-	migrator.Register(migrations.NewCreateOAuthTokensTable())
-	migrator.Register(migrations.NewCreateOAuthScopesTable())
-	migrator.Register(migrations.NewCreateRolesTable())
-	migrator.Register(migrations.NewCreatePermissionsTable())
-	migrator.Register(migrations.NewCreateUserRolesTable())
-	migrator.Register(migrations.NewCreateRolePermissionsTable())
-	migrator.Register(migrations.NewCreateUserPermissionsTable())
-
-	fmt.Println("🚀 Ejecutando acción del migrator...")
-	action(migrator)
-}
-
 var MigrateCmd = &cobra.Command{
 	Use:   "migrate",
 	Short: "Ejecuta las migraciones de base de datos",
 	Run: func(cmd *cobra.Command, args []string) {
-		withMigrator(func(migrator *generate_migrations.Migrator) {
+		migrations.WithMigrator(func(migrator *generate_migrations.Migrator) {
 			if err := migrator.Migrate(); err != nil {
 				log.Fatal("Error running database:", err)
 			}
@@ -57,7 +31,7 @@ var MigrateFreshCmd = &cobra.Command{
 	Use:   "migrate:fresh",
 	Short: "Elimina y vuelve a crear todas las tablas",
 	Run: func(cmd *cobra.Command, args []string) {
-		withMigrator(func(migrator *generate_migrations.Migrator) {
+		migrations.WithMigrator(func(migrator *generate_migrations.Migrator) {
 			if err := migrator.Fresh(); err != nil {
 				log.Fatal("Error refreshing database:", err)
 			}
@@ -69,7 +43,7 @@ var MigrateRollbackCmd = &cobra.Command{
 	Use:   "migrate:rollback",
 	Short: "Revierte la última migración",
 	Run: func(cmd *cobra.Command, args []string) {
-		withMigrator(func(migrator *generate_migrations.Migrator) {
+		migrations.WithMigrator(func(migrator *generate_migrations.Migrator) {
 			if err := migrator.Rollback(); err != nil {
 				log.Fatal("Error rolling back database:", err)
 			}
