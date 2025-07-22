@@ -3,7 +3,6 @@ package commands
 import (
 	"fmt"
 	"log"
-	"semita/core/database/generate_seeders"
 	"semita/core/helpers"
 	"semita/database/seeders"
 
@@ -34,22 +33,9 @@ var SeedRunCommand = &cobra.Command{
 	},
 }
 
-// createSeederManager crea y configura el manager de generate_seeders
-func createSeederManager() *generate_seeders.SeederManager {
-	manager := generate_seeders.NewSeederManager()
-
-	// Registrar todos los seeders
-	manager.RegisterSeeder(seeders.NewRolesPermissionsSeeder())
-	manager.RegisterSeeder(seeders.NewUsersSeeder())
-
-	return manager
-}
-
 // runAllSeeders ejecuta todos los generate_seeders
 func runAllSeeders() error {
-	log.Println("=== Running All Seeders ===")
-
-	manager := createSeederManager()
+	manager := seeders.CreateSeederManager()
 	err := manager.RunAllSeeders()
 	if err != nil {
 		log.Fatalf("Error running all generate_seeders: %v", err)
@@ -64,7 +50,7 @@ func runAllSeeders() error {
 func runSpecificSeeder(seederName string) {
 	log.Printf("=== Running Seeder: %s ===", seederName)
 
-	manager := createSeederManager()
+	manager := seeders.CreateSeederManager()
 	err := manager.RunSeeder(seederName)
 	if err != nil {
 		helpers.Logs("ERROR", fmt.Sprintf("%v", err))
