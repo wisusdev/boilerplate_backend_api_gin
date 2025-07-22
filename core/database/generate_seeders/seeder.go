@@ -39,7 +39,6 @@ func NewSeederManager() *SeederManager {
 // RegisterSeeder registra un seeder en el manager
 func (sm *SeederManager) RegisterSeeder(seeder Seeder) {
 	sm.seeders[seeder.GetName()] = seeder
-	helpers.Logs("INFO", fmt.Sprintf("Seeder '%s' registered successfully", seeder.GetName()))
 }
 
 // GetAllSeeders retorna todos los generate_seeders registrados

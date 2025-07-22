@@ -26,7 +26,6 @@ func (m *Migrator) Register(migration Migration) {
 
 // CreateMigrationsTable crea la tabla de migraciones si no existe
 func (m *Migrator) CreateMigrationsTable() error {
-	helpers.Logs("info", "🔧 Intentando crear tabla de migraciones...")
 	query := `
 		CREATE TABLE IF NOT EXISTS generate_migrations (
 			id INT PRIMARY KEY AUTO_INCREMENT,
@@ -41,44 +40,34 @@ func (m *Migrator) CreateMigrationsTable() error {
 		fmt.Printf("📝 Query ejecutada: %s\n", query)
 		return fmt.Errorf("error creating generate_migrations table: %v", err)
 	}
-	helpers.Logs("info", "✅ Tabla de migraciones creada/verificada exitosamente")
 	return nil
 }
 
 // Migrate ejecuta todas las migraciones pendientes
 func (m *Migrator) Migrate() error {
-	helpers.Logs("info", "🔧 Iniciando proceso de migración...")
 
-	helpers.Logs("info", "📋 Creando tabla de migraciones si no existe...")
 	if err := m.CreateMigrationsTable(); err != nil {
 		fmt.Printf("❌ Error creando tabla de migraciones: %v\n", err)
 		return fmt.Errorf("error creating database table: %v", err)
 	}
-	helpers.Logs("info", "✅ Tabla de migraciones lista")
 
-	helpers.Logs("info", "🔍 Obteniendo migraciones ya ejecutadas...")
 	executed, err := m.getExecutedMigrations()
 	if err != nil {
 		fmt.Printf("❌ Error obteniendo migraciones ejecutadas: %v\n", err)
 		return fmt.Errorf("error fetching executed generate_migrations: %v", err)
 	}
-	helpers.Logs("info", fmt.Sprintf("📊 Encontradas %d migraciones ya ejecutadas\n", len(executed)))
 
 	// Ordenar migraciones por timestamp
-	helpers.Logs("info", fmt.Sprintf("📁 Ordenando %d migraciones registradas por timestamp...\n", len(m.migrations)))
 	sort.Slice(m.migrations, func(i, j int) bool {
 		return m.migrations[i].GetTimestamp() < m.migrations[j].GetTimestamp()
 	})
 
-	helpers.Logs("info", "🔢 Obteniendo siguiente número de lote...")
 	batch, err := m.getNextBatch()
 	if err != nil {
 		fmt.Printf("❌ Error obteniendo siguiente lote: %v\n", err)
 		return fmt.Errorf("error getting next batch: %v", err)
 	}
-	helpers.Logs("info", fmt.Sprintf("📦 Lote número: %d\n", batch))
 
-	helpers.Logs("info", "🚀 Ejecutando migraciones pendientes...")
 	executedCount := 0
 	for _, migration := range m.migrations {
 		migrationName := fmt.Sprintf("%s_%s", migration.GetTimestamp(), migration.GetName())
@@ -111,32 +100,22 @@ func (m *Migrator) Migrate() error {
 }
 
 func (m *Migrator) Fresh() error {
-	helpers.Logs("info", "🆕 Iniciando migración FRESH (eliminando todas las tablas)...")
-
-	// Eliminar la tabla de migraciones
-	helpers.Logs("info", "🗑️  Eliminando todas las tablas...")
 	if err := dropAllMigrationsTable(m.db); err != nil {
 		fmt.Printf("❌ Error eliminando tablas: %v\n", err)
 		return fmt.Errorf("error dropping generate_migrations table: %v", err)
 	}
-	helpers.Logs("info", "✅ Todas las tablas eliminadas")
 
-	// Volver a crear la tabla de migraciones
-	helpers.Logs("info", "📋 Recreando tabla de migraciones...")
 	if err := m.CreateMigrationsTable(); err != nil {
 		fmt.Printf("❌ Error recreando tabla de migraciones: %v\n", err)
 		return fmt.Errorf("error recreating generate_migrations table: %v", err)
 	}
-	helpers.Logs("info", "✅ Tabla de migraciones recreada")
 
 	// Ejecutar todas las migraciones nuevamente
-	helpers.Logs("info", "🔄 Ejecutando todas las migraciones desde cero...")
 	if err := m.Migrate(); err != nil {
 		fmt.Printf("❌ Error ejecutando migraciones después de fresh: %v\n", err)
 		return fmt.Errorf("error running generate_migrations after fresh: %v", err)
 	}
 
-	helpers.Logs("info", "🎉 Migración FRESH completada exitosamente")
 	return nil
 }
 
