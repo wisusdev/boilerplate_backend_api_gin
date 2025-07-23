@@ -18,7 +18,6 @@ var SeedAllCommand = &cobra.Command{
 		if err := runAllSeeders(); err != nil {
 			log.Fatalf("Error running all generate_seeders: %v", err)
 		}
-		log.Println("=== All Seeders Completed Successfully ===")
 	},
 }
 
@@ -42,14 +41,11 @@ func runAllSeeders() error {
 		return err
 	}
 
-	log.Println("=== All Seeders Completed Successfully ===")
 	return nil
 }
 
 // runSpecificSeeder ejecuta un seeder específico
 func runSpecificSeeder(seederName string) {
-	log.Printf("=== Running Seeder: %s ===", seederName)
-
 	manager := seeders.CreateSeederManager()
 	err := manager.RunSeeder(seederName)
 	if err != nil {
