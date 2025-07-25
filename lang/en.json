@@ -19,6 +19,8 @@
 	"create_user": "Create User",
 	"id": "ID",
 	"name": "Name",
+	"first_name": "First Name",
+	"last_name": "Last Name",
 	"username": "Username",
 	"actions": "Actions",
 	"view": "View",
