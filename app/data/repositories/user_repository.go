@@ -121,7 +121,7 @@ func StoreUser(user structs.StoreUserStruct) (err error) {
 	var query = "INSERT INTO " + userTable + " (first_name, last_name, username, email, password, language) VALUES (?, '', ?, ?, ?, 'es')"
 
 	// Ejecutamos la consulta con los datos del usuario
-	_, err = database.Exec(query, user.Name, user.Email, user.Email, user.Password)
+	_, err = database.Exec(query, user.FirstName, user.LastName, user.Username, user.Email, user.Password)
 
 	// Si hubo un error al ejecutar la consulta, retornamos el error
 	if err != nil {
