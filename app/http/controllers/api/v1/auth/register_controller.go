@@ -45,9 +45,11 @@ func Register(context *gin.Context) {
 	}
 
 	userToStore := structs.StoreUserStruct{
-		Name:     req.Name,
-		Email:    req.Email,
-		Password: string(hashedPassword),
+		FirstName: req.FirstName,
+		LastName:  req.LastName,
+		Username:  req.Username,
+		Email:     req.Email,
+		Password:  string(hashedPassword),
 	}
 
 	errorStore := models.StoreUser(userToStore)

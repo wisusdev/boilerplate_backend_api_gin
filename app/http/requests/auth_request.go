@@ -9,7 +9,9 @@ var validate = validator.New()
 
 // RegisterRequest valida los datos de registro
 type RegisterRequest struct {
-	Name                 string `form:"name" json:"name" binding:"required,min=2"`
+	FirstName            string `form:"first_name" json:"first_name" binding:"required,min=2"`
+	LastName             string `form:"last_name" json:"last_name" binding:"required,min=2"`
+	Username             string `form:"username" json:"username" binding:"required,min=2,max=20,alphanum"`
 	Email                string `form:"email" json:"email" binding:"required,email"`
 	Password             string `form:"password" json:"password" binding:"required,min=6"`
 	PasswordConfirmation string `form:"password_confirmation" json:"password_confirmation" binding:"required,eqfield=Password"`

@@ -15,21 +15,33 @@
                         </div>
                         <div class="card-body">
                             <form method="POST" action="/auth/register">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="first_name" class="form-label">{{call .Translate "first_name"}}</label>
+                                        <input type="text" class="form-control" id="first_name" name="first_name" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="last_name" class="form-label">{{call .Translate "last_name"}}</label>
+                                        <input type="text" class="form-control" id="last_name" name="last_name" required>
+                                    </div>
+                                </div>
                                 <div class="mb-3">
-                                    <label for="name" class="form-label">{{call .Translate "name"}}</label>
-                                    <input type="text" class="form-control" id="name" name="name" required>
+                                    <label for="username" class="form-label">{{call .Translate "username"}}</label>
+                                    <input type="text" class="form-control" id="username" name="username" required>
                                 </div>
                                 <div class="mb-3">
                                     <label for="email" class="form-label">{{call .Translate "email"}}</label>
                                     <input type="email" class="form-control" id="email" name="email" required>
                                 </div>
-                                <div class="mb-3">
-                                    <label for="password" class="form-label">{{call .Translate "password"}}</label>
-                                    <input type="password" class="form-control" id="password" name="password" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="confirm_password" class="form-label">{{call .Translate "confirm_password"}}</label>
-                                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="password" class="form-label">{{call .Translate "password"}}</label>
+                                        <input type="password" class="form-control" id="password" name="password" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="confirm_password" class="form-label">{{call .Translate "confirm_password"}}</label>
+                                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                                    </div>
                                 </div>
                                 <button type="submit" class="btn btn-primary">{{call .Translate "register_me"}}</button>
                             </form>

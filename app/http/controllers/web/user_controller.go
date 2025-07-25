@@ -29,9 +29,11 @@ func UserCreate(context *gin.Context) {
 
 func UserStore(context *gin.Context) {
 	var user = structs.StoreUserStruct{
-		Name:     context.PostForm("name"),
-		Email:    context.PostForm("email"),
-		Password: context.PostForm("password"),
+		FirstName: context.PostForm("first_name"),
+		LastName:  context.PostForm("last_name"),
+		Username:  context.PostForm("username"),
+		Email:     context.PostForm("email"),
+		Password:  context.PostForm("password"),
 	}
 
 	var errorStore = models.StoreUser(user)

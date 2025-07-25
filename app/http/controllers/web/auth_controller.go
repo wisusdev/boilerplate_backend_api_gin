@@ -93,43 +93,57 @@ func AuthRegister(context *gin.Context) {
 	helpers.View(context, "auth/register.html", "Register", nil)
 }
 
-func AuthRegisterPost(c *gin.Context) {
-	name := c.PostForm("name")
-	email := c.PostForm("email")
-	password := c.PostForm("password")
-	confirmPassword := c.PostForm("confirm_password")
+func AuthRegisterPost(context *gin.Context) {
+	firstName := context.PostForm("first_name")
+	lastName := context.PostForm("last_name")
+	username := context.PostForm("username")
+	email := context.PostForm("email")
+	password := context.PostForm("password")
+	confirmPassword := context.PostForm("confirm_password")
 
-	if name == "" || email == "" || password == "" || confirmPassword == "" {
-		c.String(http.StatusBadRequest, "Name, Email, password, and confirm password are required")
+	if firstName == "" || lastName == "" || username == "" || email == "" || password == "" || confirmPassword == "" {
+		helpers.CreateFlashNotification(context.Writer, context.Request, "warning", "All fields are required")
+		context.Redirect(http.StatusSeeOther, "/auth/register")
+		context.Abort()
 		return
 	}
 
 	if password != confirmPassword {
-		c.String(http.StatusBadRequest, "Passwords do not match")
+		helpers.CreateFlashNotification(context.Writer, context.Request, "warning", "Passwords do not match")
+		context.Redirect(http.StatusSeeOther, "/auth/register")
+		context.Abort()
 		return
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		c.String(http.StatusInternalServerError, "Error encrypting password")
+		helpers.Logs("ERROR", fmt.Sprintf("Error encrypting password: %v", err))
+		helpers.CreateFlashNotification(context.Writer, context.Request, "error", "Lo siento, hubo un error al encriptar la contraseña")
+		context.Redirect(http.StatusSeeOther, "/auth/register")
+		context.Abort()
 		return
 	}
 
 	user := structs.StoreUserStruct{
-		Name:     name,
-		Email:    email,
-		Password: string(hashedPassword),
+		FirstName: firstName,
+		LastName:  lastName,
+		Username:  username,
+		Email:     email,
+		Password:  string(hashedPassword),
 	}
 
 	errorStore := models.StoreUser(user)
 	if errorStore != nil {
 		helpers.Logs("ERROR", fmt.Sprintf("Error saving user: %v", errorStore))
-		c.String(http.StatusInternalServerError, "Error saving user to the database")
+		helpers.CreateFlashNotification(context.Writer, context.Request, "error", "Lo siento, hubo un error al guardar el usuario")
+		context.Redirect(http.StatusSeeOther, "/auth/register")
+		context.Abort()
 		return
 	}
 
-	c.Redirect(http.StatusSeeOther, "/auth/login")
-	c.Abort()
+	helpers.CreateFlashNotification(context.Writer, context.Request, "success", "User registered successfully!")
+	context.Redirect(http.StatusSeeOther, "/auth/login")
+	context.Abort()
 }
 
 func AuthForgotPassword(context *gin.Context) {
@@ -151,9 +165,13 @@ func AuthForgotPasswordPost(context *gin.Context) {
 	if errorSendEmail != nil {
 		helpers.Logs("ERROR", errorSendEmail.Error())
 		fmt.Println("Error sending password reset email:", errorSendEmail)
+		helpers.CreateFlashNotification(context.Writer, context.Request, "warning", "Error sending password reset email. Please try again later.")
+		context.Redirect(http.StatusSeeOther, "/auth/forgot-password")
+		context.Abort()
 		return
 	}
 
+	helpers.CreateFlashNotification(context.Writer, context.Request, "success", "Password reset successful!")
 	context.Redirect(http.StatusSeeOther, "/auth/login")
 	context.Abort()
 }
@@ -173,11 +191,15 @@ func AuthResetPasswordPost(context *gin.Context) {
 
 	if token == "" || password == "" || confirmPassword == "" {
 		helpers.CreateFlashNotification(context.Writer, context.Request, "warning", "Token, password, and confirm password are required")
+		context.Redirect(http.StatusSeeOther, "/auth/reset-password?token="+token)
+		context.Abort()
 		return
 	}
 
 	if password != confirmPassword {
 		helpers.CreateFlashNotification(context.Writer, context.Request, "warning", "Passwords do not match")
+		context.Redirect(http.StatusSeeOther, "/auth/reset-password?token="+token)
+		context.Abort()
 		return
 	}
 
