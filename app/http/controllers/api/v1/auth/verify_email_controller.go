@@ -1,12 +1,10 @@
 package auth
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
-	"fmt"
 	"net/http"
 	"semita/app/data/models"
 	"semita/app/notifications"
+	"semita/core/helpers"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -21,7 +19,7 @@ func ResendEmailVerify(context *gin.Context) {
 		return
 	}
 	// Generar hash de verificación
-	hash := generateEmailVerificationHash(user.ID, user.Email)
+	hash := helpers.GenerateEmailVerificationHash(user.ID, user.Email)
 	verifyURL := "/auth/email/verify/" + strconv.Itoa(user.ID) + "/" + hash
 	err = notifications.SendEmailVerification(user.Email, verifyURL)
 	if err != nil {
@@ -45,7 +43,7 @@ func VerifyEmail(context *gin.Context) {
 		return
 	}
 	// Validar hash
-	if hash != generateEmailVerificationHash(user.ID, user.Email) {
+	if hash != helpers.GenerateEmailVerificationHash(user.ID, user.Email) {
 		context.JSON(http.StatusBadRequest, gin.H{"error": "Hash inválido"})
 		return
 	}
@@ -56,10 +54,4 @@ func VerifyEmail(context *gin.Context) {
 		return
 	}
 	context.JSON(http.StatusOK, gin.H{"message": "Email verificado correctamente"})
-}
-
-func generateEmailVerificationHash(userID int, email string) string {
-	h := sha256.New()
-	h.Write([]byte(fmt.Sprintf("%d:%s", userID, email)))
-	return hex.EncodeToString(h.Sum(nil))
 }
