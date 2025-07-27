@@ -52,7 +52,7 @@ func Register(context *gin.Context) {
 		Password:  string(hashedPassword),
 	}
 
-	errorStore := models.StoreUser(userToStore)
+	_, errorStore := models.StoreUser(userToStore)
 	if errorStore != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"errors": []gin.H{{
 			"status": "500",
