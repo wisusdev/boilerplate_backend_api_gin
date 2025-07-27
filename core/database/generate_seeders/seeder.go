@@ -182,8 +182,6 @@ func (sm *SeederManager) cleanSeederData(seeder Seeder) error {
 		if err != nil {
 			log.Printf("Error cleaning table '%s': %v", table, err)
 			// Continuar con las otras tablas
-		} else {
-			log.Printf("Cleaned table: %s", table)
 		}
 	}
 
