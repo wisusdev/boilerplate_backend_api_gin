@@ -13,8 +13,8 @@ func GetAllUsers() ([]structs.UserStruct, error) {
 }
 
 // StoreUser guarda un nuevo usuario a través del repositorio
-func StoreUser(user structs.StoreUserStruct) error {
-	return repositories.StoreUser(user)
+func StoreUser(storeUser structs.StoreUserStruct) (user structs.UserStruct, err error) {
+	return repositories.StoreUser(storeUser)
 }
 
 // GetUserByID obtiene un usuario por ID a través del repositorio

@@ -2,8 +2,10 @@ package repositories
 
 import (
 	"semita/app/data/structs"
+	"semita/core/common/nulltypes"
 	"semita/core/database/database_connections"
 	"semita/core/helpers"
+	"strconv"
 	"time"
 )
 
@@ -28,17 +30,31 @@ func parseDateTime(dateStr string) time.Time {
 	return parsedTime
 }
 
+// parseDateTimePtr convierte una fecha string a *time.Time o nil si está vacía
+func parseDateTimePtr(dateStr string) *time.Time {
+	if dateStr == "" {
+		return nil
+	}
+	parsedTime, err := time.Parse("2006-01-02 15:04:05", dateStr)
+	if err != nil {
+		helpers.Logs("ERROR", "Error al parsear fecha: "+err.Error())
+		return nil
+	}
+	return &parsedTime
+}
+
 // scanUserRow escanea una fila de usuario y maneja la conversión de fechas
 func scanUserRow(scanner interface {
 	Scan(dest ...interface{}) error
 }) (structs.UserStruct, error) {
 	var user structs.UserStruct
 	var createdAtStr, updatedAtStr string
+	var emailVerifiedAtStr nulltypes.NullString
 	var avatarPtr *string
 
 	err := scanner.Scan(
 		&user.ID, &user.FirstName, &user.LastName, &user.Username,
-		&avatarPtr, &user.Language, &user.Email, &user.Password,
+		&avatarPtr, &user.Language, &user.Email, &emailVerifiedAtStr, &user.Password,
 		&createdAtStr, &updatedAtStr,
 	)
 
@@ -56,11 +72,17 @@ func scanUserRow(scanner interface {
 	user.CreatedAt = parseDateTime(createdAtStr)
 	user.UpdatedAt = parseDateTime(updatedAtStr)
 
+	if emailVerifiedAtStr.Valid && emailVerifiedAtStr.String != "" {
+		user.EmailVerifiedAt = parseDateTimePtr(emailVerifiedAtStr.String)
+	} else {
+		user.EmailVerifiedAt = nil // nil si no está verificado
+	}
+
 	return user, nil
 }
 
 func (r *UserRepository) Where(field string, value interface{}) ([]structs.UserStruct, error) {
-	query := "SELECT id, first_name, last_name, username, avatar, language, email, password, created_at, updated_at FROM users WHERE " + field + " = ?"
+	query := "SELECT id, first_name, last_name, username, avatar, language, email, email_verified_at, password, created_at, updated_at FROM users WHERE " + field + " = ?"
 	rows, err := r.DB.Query(query, value)
 	if err != nil {
 		return nil, err
@@ -86,7 +108,7 @@ func GetAllUsers() ([]structs.UserStruct, error) {
 	defer database.Close()
 
 	// Preparamos la consulta para obtener todos los usuarios
-	var query = "SELECT id, first_name, last_name, username, avatar, language, email, password, created_at, updated_at FROM " + userTable
+	var query = "SELECT id, first_name, last_name, username, avatar, language, email, email_verified_at, password, created_at, updated_at FROM " + userTable
 
 	// Ejecutamos la consulta y obtenemos los resultados
 	rows, err := database.Query(query)
@@ -110,25 +132,35 @@ func GetAllUsers() ([]structs.UserStruct, error) {
 	return users, nil
 }
 
-func StoreUser(user structs.StoreUserStruct) (err error) {
+func StoreUser(storeUser structs.StoreUserStruct) (user structs.UserStruct, err error) {
 	// Instanciamos la conexion a la base de datos
 	var database = database_connections.DatabaseConnectSQL()
-
-	// Aseguramos que la conexion se cierre al final de la funcion
 	defer database.Close()
 
 	// Preparamos la consulta para insertar un nuevo usuario
-	var query = "INSERT INTO " + userTable + " (first_name, last_name, username, email, password, language) VALUES (?, '', ?, ?, ?, 'es')"
+	var query = "INSERT INTO " + userTable + " (first_name, last_name, username, email, password, language) VALUES (?, ?, ?, ?, ?, 'es')"
 
 	// Ejecutamos la consulta con los datos del usuario
-	_, err = database.Exec(query, user.FirstName, user.LastName, user.Username, user.Email, user.Password)
-
-	// Si hubo un error al ejecutar la consulta, retornamos el error
-	if err != nil {
-		return err
+	result, errorErr := database.Exec(query, storeUser.FirstName, storeUser.LastName, storeUser.Username, storeUser.Email, storeUser.Password)
+	if errorErr != nil {
+		helpers.Logs("ERROR", "Error al guardar el usuario: "+errorErr.Error())
+		return structs.UserStruct{}, errorErr
 	}
 
-	return nil
+	var lastInsertID int64
+	lastInsertID, err = result.LastInsertId()
+	if err != nil {
+		helpers.Logs("ERROR", "Error al obtener el ID del usuario insertado: "+err.Error())
+		return structs.UserStruct{}, err
+	}
+
+	user, err = GetUserByID(strconv.FormatInt(lastInsertID, 10))
+	if err != nil {
+		helpers.Logs("ERROR", "Error al obtener el usuario recién insertado: "+err.Error())
+		return structs.UserStruct{}, err
+	}
+
+	return user, nil
 }
 
 func GetUserByID(id string) (user structs.UserStruct, err error) {
@@ -139,7 +171,7 @@ func GetUserByID(id string) (user structs.UserStruct, err error) {
 	defer database.Close()
 
 	// Preparamos la consulta para obtener un usuario por su ID
-	var query = "SELECT id, first_name, last_name, username, avatar, language, email, password, created_at, updated_at FROM " + userTable + " WHERE id = ?"
+	var query = "SELECT id, first_name, last_name, username, avatar, language, email, email_verified_at, password, created_at, updated_at FROM " + userTable + " WHERE id = ?"
 
 	// Ejecutamos la consulta y obtenemos los resultados usando la función helper
 	user, err = scanUserRow(database.QueryRow(query, id))
@@ -158,7 +190,7 @@ func GetUserByEmail(email string) (user structs.UserStruct, err error) {
 	defer database.Close()
 
 	// Preparamos la consulta para obtener un usuario por su email
-	var query = "SELECT id, first_name, last_name, username, avatar, language, email, password, created_at, updated_at FROM " + userTable + " WHERE email = ?"
+	var query = "SELECT id, first_name, last_name, username, avatar, language, email, email_verified_at, password, created_at, updated_at FROM " + userTable + " WHERE email = ?"
 
 	// Ejecutamos la consulta y obtenemos los resultados usando la función helper
 	user, err = scanUserRow(database.QueryRow(query, email))
