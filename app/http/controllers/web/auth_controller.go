@@ -8,6 +8,7 @@ import (
 	"semita/app/notifications"
 	"semita/config"
 	"semita/core/helpers"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -24,7 +25,7 @@ func AuthLoginPost(context *gin.Context) {
 
 	if email == "" || password == "" {
 		helpers.Logs("ERROR", "Email and password are required")
-		helpers.CreateFlashNotification(context.Writer, context.Request, "warning", "Email and password are required")
+		helpers.CreateFlashNotification(context.Writer, context.Request, "warning", "El correo y la contraseña son requeridos")
 		context.Redirect(http.StatusSeeOther, "/auth/login")
 		context.Abort()
 		return
@@ -48,6 +49,16 @@ func AuthLoginPost(context *gin.Context) {
 	if errPassword != nil {
 		helpers.Logs("ERROR", "Invalid password")
 		helpers.CreateFlashNotification(context.Writer, context.Request, "warning", "Invalid email or password")
+		context.Redirect(http.StatusSeeOther, "/auth/login")
+		context.Abort()
+		return
+	}
+
+	// Check if email is verified
+	if storedUser.EmailVerifiedAt == nil && config.AppConfig().MustVerifyEmail {
+		urlResendVerification := "http://" + config.AppConfig().Url + "/auth/resend-verification?email=" + storedUser.Email
+		flashMsg := `Por favor verifica tu correo antes de iniciar sesión. <a href="` + urlResendVerification + `">Reenviar correo de verificación</a>`
+		helpers.CreateFlashNotification(context.Writer, context.Request, "warning", flashMsg)
 		context.Redirect(http.StatusSeeOther, "/auth/login")
 		context.Abort()
 		return
@@ -132,11 +143,29 @@ func AuthRegisterPost(context *gin.Context) {
 		Password:  string(hashedPassword),
 	}
 
-	errorStore := models.StoreUser(user)
+	userStore, errorStore := models.StoreUser(user)
 	if errorStore != nil {
 		helpers.Logs("ERROR", fmt.Sprintf("Error saving user: %v", errorStore))
-		helpers.CreateFlashNotification(context.Writer, context.Request, "error", "Lo siento, hubo un error al guardar el usuario")
+		helpers.CreateFlashNotification(context.Writer, context.Request, "warning", "Lo siento, hubo un error al guardar el usuario")
 		context.Redirect(http.StatusSeeOther, "/auth/register")
+		context.Abort()
+		return
+	}
+
+	if config.AppConfig().MustVerifyEmail {
+		verifyURL := "http://" + config.AppConfig().Url + "/auth/email/verify/" + strconv.Itoa(userStore.ID) + "/" + helpers.GenerateEmailVerificationHash(userStore.ID, userStore.Email)
+		err = notifications.SendEmailVerification(userStore.Email, verifyURL)
+
+		if err != nil {
+			helpers.Logs("ERROR", fmt.Sprintf("Error sending verification email: %v", err))
+			helpers.CreateFlashNotification(context.Writer, context.Request, "warning", "Error sending verification email. Please try again later.")
+			context.Redirect(http.StatusSeeOther, "/auth/register")
+			context.Abort()
+			return
+		}
+
+		helpers.CreateFlashNotification(context.Writer, context.Request, "info", "Verification email sent. Please check your inbox.")
+		context.Redirect(http.StatusSeeOther, "/auth/login")
 		context.Abort()
 		return
 	}
@@ -171,7 +200,7 @@ func AuthForgotPasswordPost(context *gin.Context) {
 		return
 	}
 
-	helpers.CreateFlashNotification(context.Writer, context.Request, "success", "Password reset successful!")
+	helpers.CreateFlashNotification(context.Writer, context.Request, "success", "Password reset link sent successfully")
 	context.Redirect(http.StatusSeeOther, "/auth/login")
 	context.Abort()
 }
@@ -221,7 +250,7 @@ func AuthResetPasswordPost(context *gin.Context) {
 	if timeSince > 2*time.Hour {
 		_ = models.DeletePasswordReset(token)
 		helpers.Logs("INFO", fmt.Sprintf("Token expirado. Creado hace: %v", timeSince))
-		helpers.CreateFlashNotification(context.Writer, context.Request, "error", "Token expirado. Por favor, solicita un nuevo enlace de restablecimiento.")
+		helpers.CreateFlashNotification(context.Writer, context.Request, "warning", "Token expirado. Por favor, solicita un nuevo enlace de restablecimiento.")
 		context.Redirect(http.StatusSeeOther, "/auth/forgot-password")
 		context.Abort()
 		return
@@ -261,6 +290,80 @@ func AuthResetPasswordPost(context *gin.Context) {
 	helpers.Logs("INFO", "Contraseña restablecida exitosamente")
 
 	helpers.CreateFlashNotification(context.Writer, context.Request, "success", "Contraseña actualizada exitosamente!")
+	context.Redirect(http.StatusSeeOther, "/auth/login")
+	context.Abort()
+}
+
+func AuthVerifyEmail(context *gin.Context) {
+	id := context.Param("id")
+	hash := context.Param("hash")
+
+	if id == "" || hash == "" {
+		helpers.CreateFlashNotification(context.Writer, context.Request, "warning", "Invalid verification link")
+		context.Redirect(http.StatusSeeOther, "/auth/login")
+		context.Abort()
+		return
+	}
+
+	user, err := models.GetUserByID(id)
+	if err != nil {
+		helpers.Logs("ERROR", fmt.Sprintf("User not found: %v", err))
+		helpers.CreateFlashNotification(context.Writer, context.Request, "warning", "User not found")
+		context.Redirect(http.StatusSeeOther, "/auth/login")
+		context.Abort()
+		return
+	}
+
+	if user.EmailVerifiedAt != nil {
+		helpers.CreateFlashNotification(context.Writer, context.Request, "warning", "El correo ya ha sido verificado")
+		context.Redirect(http.StatusSeeOther, "/auth/login")
+		context.Abort()
+		return
+	}
+
+	err = models.MarkEmailVerified(user.ID)
+	if err != nil {
+		helpers.Logs("ERROR", fmt.Sprintf("Error marking email as verified: %v", err))
+		helpers.CreateFlashNotification(context.Writer, context.Request, "error", "Error marking email as verified")
+		context.Redirect(http.StatusSeeOther, "/auth/login")
+		context.Abort()
+		return
+	}
+
+	helpers.CreateFlashNotification(context.Writer, context.Request, "success", "Email verified successfully!")
+	context.Redirect(http.StatusSeeOther, "/auth/login")
+	context.Abort()
+}
+
+func AuthResendVerification(context *gin.Context) {
+	email := context.Query("email")
+
+	if email == "" {
+		helpers.CreateFlashNotification(context.Writer, context.Request, "warning", "Correo no válido")
+		context.Redirect(http.StatusSeeOther, "/auth/login")
+		context.Abort()
+		return
+	}
+
+	user, err := models.GetUserByEmail(email)
+	if err != nil || user.EmailVerifiedAt != nil {
+		helpers.CreateFlashNotification(context.Writer, context.Request, "warning", "Usuario no encontrado o ya verificado")
+		context.Redirect(http.StatusSeeOther, "/auth/login")
+		context.Abort()
+		return
+	}
+
+	verifyURL := "http://" + config.AppConfig().Url + "/auth/email/verify/" + strconv.Itoa(user.ID) + "/" + helpers.GenerateEmailVerificationHash(user.ID, user.Email)
+	err = notifications.SendEmailVerification(user.Email, verifyURL)
+	if err != nil {
+		helpers.Logs("ERROR", fmt.Sprintf("Error sending verification email: %v", err))
+		helpers.CreateFlashNotification(context.Writer, context.Request, "warning", "Error enviando el correo. Intenta más tarde.")
+		context.Redirect(http.StatusSeeOther, "/auth/login")
+		context.Abort()
+		return
+	}
+
+	helpers.CreateFlashNotification(context.Writer, context.Request, "success", "Correo de verificación reenviado. Revisa tu bandeja de entrada.")
 	context.Redirect(http.StatusSeeOther, "/auth/login")
 	context.Abort()
 }

@@ -26,6 +26,8 @@ func Web() *gin.Engine {
 	router.POST("/auth/forgot-password", web.AuthForgotPasswordPost)
 	router.GET("/auth/reset-password", web.AuthResetPassword)
 	router.POST("/auth/reset-password", web.AuthResetPasswordPost)
+	router.GET("/auth/email/verify/:id/:hash", middleware.RedirectGuest(web.AuthVerifyEmail))
+	router.GET("/auth/resend-verification", web.AuthResendVerification)
 
 	router.GET("/users", middleware.RequireAuth(web.UserIndex))
 	router.GET("/users/create", middleware.RequireAuth(web.UserCreate))
