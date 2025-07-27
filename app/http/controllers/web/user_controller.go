@@ -2,12 +2,13 @@ package web
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"semita/app/data/models"
 	"semita/app/data/structs"
 	"semita/core/helpers"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
 func UserIndex(context *gin.Context) {
@@ -36,7 +37,7 @@ func UserStore(context *gin.Context) {
 		Password:  context.PostForm("password"),
 	}
 
-	var errorStore = models.StoreUser(user)
+	var _, errorStore = models.StoreUser(user)
 	if errorStore != nil {
 		http.Error(context.Writer, "Error al guardar el usuario en la base de datos", http.StatusInternalServerError)
 		return
