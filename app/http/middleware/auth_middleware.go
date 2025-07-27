@@ -10,7 +10,7 @@ import (
 func RequireAuth(handler gin.HandlerFunc) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		if !helpers.IsUserAuthenticated(context.Request) {
-			helpers.CreateFlashNotification(context.Writer, context.Request, "error", "You must be logged in to access this page.")
+			helpers.CreateFlashNotification(context.Writer, context.Request, "warning", "Por favor inicia sesión para continuar")
 			context.Redirect(http.StatusSeeOther, "/auth/login")
 			context.Abort()
 			return
