@@ -74,6 +74,8 @@
 	"text": "Texto",
 	"change_password_title": "Cambiar contraseña",
 	"change_my_password": "Cambiar mi contraseña",
+	"select_option": "Seleccionar una opción",
+	"select_options": "Seleccionar opciones",
 	
 	"validation_required": "El campo :field es obligatorio.",
 	"validation_email": "El campo :field debe ser una dirección de correo válida.",

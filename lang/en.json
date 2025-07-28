@@ -13,8 +13,7 @@
 	"email": "Email",
 	"password": "Password",
 	"login": "Login",
-	"forgot_password": "Forgot your password?"
-	,
+	"forgot_password": "Forgot your password?",
 	"dummyjson_title": "DummyJSON",
 	"create_user": "Create User",
 	"id": "ID",
@@ -74,6 +73,8 @@
 	"text": "Text",
 	"change_password_title": "Change password",
 	"change_my_password": "Change my password",
+	"select_option": "Select an option",
+	"select_options": "Select options",
 	
 	"validation_required": "The :field field is required.",
 	"validation_email": "The :field must be a valid email address.",
