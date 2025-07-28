@@ -1,5 +1,7 @@
 package structs
 
+import dataStructs "semita/app/data/structs"
+
 // Role struct representa un rol en el sistema
 type RoleStruct struct {
 	ID          int    `json:"id"`
@@ -28,7 +30,7 @@ type RoleWithPermissions struct {
 
 // UserWithRolesAndPermissions representa un usuario con sus roles y permisos
 type UserWithRolesAndPermissions struct {
-	UserStruct
+	dataStructs.UserStruct
 	Roles             []RoleStruct       `json:"roles"`
 	DirectPermissions []PermissionStruct `json:"direct_permissions"`
 	AllPermissions    []PermissionStruct `json:"all_permissions"`

@@ -1,17 +1,16 @@
-package models_roles_and_permissions
+package repositories
 
 import (
 	"fmt"
-	"semita/app/data/structs"
 	"semita/core/common/nulltypes"
 	"semita/core/database/database_connections"
+	"semita/core/roles_and_permissions/structs"
 	"strings"
 )
 
 var rolesTable = "roles"
 var userRolesTable = "user_roles"
 
-// GetAllRoles obtiene todos los roles
 func GetAllRoles() ([]structs.RoleStruct, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
@@ -38,7 +37,6 @@ func GetAllRoles() ([]structs.RoleStruct, error) {
 	return roles, nil
 }
 
-// GetRoleByID obtiene un rol por su ID
 func GetRoleByID(id int) (*structs.RoleStruct, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
@@ -57,7 +55,6 @@ func GetRoleByID(id int) (*structs.RoleStruct, error) {
 	return &role, nil
 }
 
-// GetRoleByName obtiene un rol por su nombre
 func GetRoleByName(name string, guardName string) (*structs.RoleStruct, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
@@ -76,7 +73,6 @@ func GetRoleByName(name string, guardName string) (*structs.RoleStruct, error) {
 	return &role, nil
 }
 
-// CreateRole crea un nuevo rol
 func CreateRole(roleData structs.CreateRoleStruct) (*structs.RoleStruct, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
@@ -99,7 +95,6 @@ func CreateRole(roleData structs.CreateRoleStruct) (*structs.RoleStruct, error) 
 	return GetRoleByID(int(id))
 }
 
-// UpdateRole actualiza un rol existente
 func UpdateRole(id int, roleData structs.CreateRoleStruct) (*structs.RoleStruct, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
@@ -113,7 +108,6 @@ func UpdateRole(id int, roleData structs.CreateRoleStruct) (*structs.RoleStruct,
 	return GetRoleByID(id)
 }
 
-// DeleteRole elimina un rol
 func DeleteRole(id int) error {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
@@ -123,7 +117,6 @@ func DeleteRole(id int) error {
 	return err
 }
 
-// GetUserRoles obtiene todos los roles de un usuario
 func GetUserRoles(userID int) ([]structs.RoleStruct, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
@@ -156,7 +149,6 @@ func GetUserRoles(userID int) ([]structs.RoleStruct, error) {
 	return roles, nil
 }
 
-// AssignRoleToUser asigna un rol a un usuario
 func AssignRoleToUser(userID int, roleID int) error {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
@@ -175,7 +167,6 @@ func AssignRoleToUser(userID int, roleID int) error {
 	return err
 }
 
-// RevokeRoleFromUser revoca un rol de un usuario
 func RevokeRoleFromUser(userID int, roleID int) error {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
@@ -185,7 +176,6 @@ func RevokeRoleFromUser(userID int, roleID int) error {
 	return err
 }
 
-// UserHasRole verifica si un usuario tiene un rol específico
 func UserHasRole(userID int, roleID int) (bool, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
@@ -200,7 +190,6 @@ func UserHasRole(userID int, roleID int) (bool, error) {
 	return count > 0, nil
 }
 
-// UserHasRoleByName verifica si un usuario tiene un rol por nombre
 func UserHasRoleByName(userID int, roleName string, guardName string) (bool, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
@@ -224,7 +213,6 @@ func UserHasRoleByName(userID int, roleName string, guardName string) (bool, err
 	return count > 0, nil
 }
 
-// UserHasAnyRole verifica si un usuario tiene al menos uno de los roles especificados
 func UserHasAnyRole(userID int, roleNames []string, guardName string) (bool, error) {
 	if len(roleNames) == 0 {
 		return false, nil
@@ -263,7 +251,6 @@ func UserHasAnyRole(userID int, roleNames []string, guardName string) (bool, err
 	return count > 0, nil
 }
 
-// UserHasAllRoles verifica si un usuario tiene todos los roles especificados
 func UserHasAllRoles(userID int, roleNames []string, guardName string) (bool, error) {
 	if len(roleNames) == 0 {
 		return true, nil

@@ -1,10 +1,10 @@
-package models_roles_and_permissions
+package repositories
 
 import (
 	"fmt"
-	"semita/app/data/structs"
 	"semita/core/common/nulltypes"
 	"semita/core/database/database_connections"
+	"semita/core/roles_and_permissions/structs"
 	"strings"
 )
 
@@ -12,7 +12,6 @@ var permissionsTable = "permissions"
 var rolePermissionsTable = "role_permissions"
 var userPermissionsTable = "user_permissions"
 
-// GetAllPermissions obtiene todos los permisos
 func GetAllPermissions() ([]structs.PermissionStruct, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
@@ -39,7 +38,6 @@ func GetAllPermissions() ([]structs.PermissionStruct, error) {
 	return permissions, nil
 }
 
-// GetPermissionByID obtiene un permiso por su ID
 func GetPermissionByID(id int) (*structs.PermissionStruct, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
@@ -58,7 +56,6 @@ func GetPermissionByID(id int) (*structs.PermissionStruct, error) {
 	return &permission, nil
 }
 
-// GetPermissionByName obtiene un permiso por su nombre
 func GetPermissionByName(name string, guardName string) (*structs.PermissionStruct, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
@@ -77,7 +74,6 @@ func GetPermissionByName(name string, guardName string) (*structs.PermissionStru
 	return &permission, nil
 }
 
-// CreatePermission crea un nuevo permiso
 func CreatePermission(permissionData structs.CreatePermissionStruct) (*structs.PermissionStruct, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
@@ -100,7 +96,6 @@ func CreatePermission(permissionData structs.CreatePermissionStruct) (*structs.P
 	return GetPermissionByID(int(id))
 }
 
-// UpdatePermission actualiza un permiso existente
 func UpdatePermission(id int, permissionData structs.CreatePermissionStruct) (*structs.PermissionStruct, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
@@ -114,7 +109,6 @@ func UpdatePermission(id int, permissionData structs.CreatePermissionStruct) (*s
 	return GetPermissionByID(id)
 }
 
-// DeletePermission elimina un permiso
 func DeletePermission(id int) error {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
@@ -124,7 +118,6 @@ func DeletePermission(id int) error {
 	return err
 }
 
-// GetRolePermissions obtiene todos los permisos de un rol
 func GetRolePermissions(roleID int) ([]structs.PermissionStruct, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
@@ -157,7 +150,6 @@ func GetRolePermissions(roleID int) ([]structs.PermissionStruct, error) {
 	return permissions, nil
 }
 
-// GetUserDirectPermissions obtiene los permisos directos de un usuario (no heredados de roles)
 func GetUserDirectPermissions(userID int) ([]structs.PermissionStruct, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
@@ -190,7 +182,6 @@ func GetUserDirectPermissions(userID int) ([]structs.PermissionStruct, error) {
 	return permissions, nil
 }
 
-// GetUserAllPermissions obtiene todos los permisos de un usuario (directos + heredados de roles)
 func GetUserAllPermissions(userID int) ([]structs.PermissionStruct, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
@@ -233,7 +224,6 @@ func GetUserAllPermissions(userID int) ([]structs.PermissionStruct, error) {
 	return permissions, nil
 }
 
-// AssignPermissionToRole asigna un permiso a un rol
 func AssignPermissionToRole(roleID int, permissionID int) error {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
@@ -252,7 +242,6 @@ func AssignPermissionToRole(roleID int, permissionID int) error {
 	return err
 }
 
-// RevokePermissionFromRole revoca un permiso de un rol
 func RevokePermissionFromRole(roleID int, permissionID int) error {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
@@ -262,7 +251,6 @@ func RevokePermissionFromRole(roleID int, permissionID int) error {
 	return err
 }
 
-// AssignPermissionToUser asigna un permiso directamente a un usuario
 func AssignPermissionToUser(userID int, permissionID int) error {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
@@ -281,7 +269,6 @@ func AssignPermissionToUser(userID int, permissionID int) error {
 	return err
 }
 
-// RevokePermissionFromUser revoca un permiso directo de un usuario
 func RevokePermissionFromUser(userID int, permissionID int) error {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
@@ -291,7 +278,6 @@ func RevokePermissionFromUser(userID int, permissionID int) error {
 	return err
 }
 
-// RoleHasPermission verifica si un rol tiene un permiso específico
 func RoleHasPermission(roleID int, permissionID int) (bool, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
@@ -306,7 +292,6 @@ func RoleHasPermission(roleID int, permissionID int) (bool, error) {
 	return count > 0, nil
 }
 
-// UserHasDirectPermission verifica si un usuario tiene un permiso directo
 func UserHasDirectPermission(userID int, permissionID int) (bool, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
@@ -321,7 +306,6 @@ func UserHasDirectPermission(userID int, permissionID int) (bool, error) {
 	return count > 0, nil
 }
 
-// UserHasPermission verifica si un usuario tiene un permiso (directo o heredado)
 func UserHasPermission(userID int, permissionName string, guardName string) (bool, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
@@ -357,7 +341,6 @@ func UserHasPermission(userID int, permissionName string, guardName string) (boo
 	return count > 0, nil
 }
 
-// UserHasAnyPermission verifica si un usuario tiene al menos uno de los permisos especificados
 func UserHasAnyPermission(userID int, permissionNames []string, guardName string) (bool, error) {
 	if len(permissionNames) == 0 {
 		return false, nil
@@ -412,7 +395,6 @@ func UserHasAnyPermission(userID int, permissionNames []string, guardName string
 	return count > 0, nil
 }
 
-// UserHasAllPermissions verifica si un usuario tiene todos los permisos especificados
 func UserHasAllPermissions(userID int, permissionNames []string, guardName string) (bool, error) {
 	if len(permissionNames) == 0 {
 		return true, nil
