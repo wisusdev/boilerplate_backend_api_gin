@@ -3,9 +3,9 @@ package web
 import (
 	"net/http"
 	"semita/app/data/models"
-	"semita/app/data/structs"
 	"semita/core/helpers"
-	"semita/core/roles_and_permissions/models_roles_and_permissions"
+	rolesAndPermissionsModels "semita/core/roles_and_permissions/models"
+	"semita/core/roles_and_permissions/structs"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -91,21 +91,21 @@ func (ac *AdminController) UserShow(context *gin.Context) {
 	}
 
 	// Obtener roles y permisos del usuario
-	userRoles, err := models_roles_and_permissions.GetUserRoles(userIDInt)
+	userRoles, err := rolesAndPermissionsModels.GetUserRoles(userIDInt)
 	if err != nil {
 		helpers.CreateFlashNotification(context.Writer, context.Request, "error", "Error al obtener roles del usuario.")
 		context.Redirect(http.StatusSeeOther, "/admin/users")
 		return
 	}
 
-	userDirectPermissions, err := models_roles_and_permissions.GetUserDirectPermissions(userIDInt)
+	userDirectPermissions, err := rolesAndPermissionsModels.GetUserDirectPermissions(userIDInt)
 	if err != nil {
 		helpers.CreateFlashNotification(context.Writer, context.Request, "error", "Error al obtener permisos del usuario.")
 		context.Redirect(http.StatusSeeOther, "/admin/users")
 		return
 	}
 
-	userAllPermissions, err := models_roles_and_permissions.GetUserAllPermissions(userIDInt)
+	userAllPermissions, err := rolesAndPermissionsModels.GetUserAllPermissions(userIDInt)
 	if err != nil {
 		helpers.CreateFlashNotification(context.Writer, context.Request, "error", "Error al obtener todos los permisos del usuario.")
 		context.Redirect(http.StatusSeeOther, "/admin/users")
@@ -113,13 +113,13 @@ func (ac *AdminController) UserShow(context *gin.Context) {
 	}
 
 	// Obtener todos los roles disponibles para asignación
-	availableRoles, err := models_roles_and_permissions.GetAllRoles()
+	availableRoles, err := rolesAndPermissionsModels.GetAllRoles()
 	if err != nil {
 		availableRoles = []structs.RoleStruct{}
 	}
 
 	// Obtener todos los permisos disponibles para asignación directa
-	availablePermissions, err := models_roles_and_permissions.GetAllPermissions()
+	availablePermissions, err := rolesAndPermissionsModels.GetAllPermissions()
 	if err != nil {
 		availablePermissions = []structs.PermissionStruct{}
 	}
@@ -148,7 +148,7 @@ func (ac *AdminController) RolesIndex(c *gin.Context) {
 		return
 	}
 
-	roles, err := models_roles_and_permissions.GetAllRoles()
+	roles, err := rolesAndPermissionsModels.GetAllRoles()
 	if err != nil {
 		helpers.CreateFlashNotification(c.Writer, c.Request, "error", "Error al obtener roles: "+err.Error())
 		c.Redirect(http.StatusSeeOther, "/admin")
@@ -175,7 +175,7 @@ func (ac *AdminController) PermissionsIndex(c *gin.Context) {
 		return
 	}
 
-	permissions, err := models_roles_and_permissions.GetAllPermissions()
+	permissions, err := rolesAndPermissionsModels.GetAllPermissions()
 	if err != nil {
 		helpers.CreateFlashNotification(c.Writer, c.Request, "error", "Error al obtener permisos: "+err.Error())
 		c.Redirect(http.StatusSeeOther, "/admin")
