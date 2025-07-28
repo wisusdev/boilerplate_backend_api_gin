@@ -2,7 +2,7 @@ package helpers
 
 import (
 	"net/http"
-	"semita/core/roles_and_permissions/models_roles_and_permissions"
+	"semita/core/roles_and_permissions/models"
 )
 
 // RolePermissionHelper proporciona métodos auxiliares para verificar roles y permisos
@@ -34,7 +34,7 @@ func (rph *RolePermissionHelper) HasRole(request *http.Request, roleName string,
 		guard = guardName[0]
 	}
 
-	hasRole, err := models_roles_and_permissions.UserHasRoleByName(userID, roleName, guard)
+	hasRole, err := models.UserHasRoleByName(userID, roleName, guard)
 	if err != nil {
 		return false
 	}
@@ -54,7 +54,7 @@ func (rph *RolePermissionHelper) HasAnyRole(request *http.Request, roleNames []s
 		guard = guardName[0]
 	}
 
-	hasAnyRole, err := models_roles_and_permissions.UserHasAnyRole(userID, roleNames, guard)
+	hasAnyRole, err := models.UserHasAnyRole(userID, roleNames, guard)
 	if err != nil {
 		return false
 	}
@@ -74,7 +74,7 @@ func (rph *RolePermissionHelper) HasAllRoles(request *http.Request, roleNames []
 		guard = guardName[0]
 	}
 
-	hasAllRoles, err := models_roles_and_permissions.UserHasAllRoles(userID, roleNames, guard)
+	hasAllRoles, err := models.UserHasAllRoles(userID, roleNames, guard)
 	if err != nil {
 		return false
 	}
@@ -94,7 +94,7 @@ func (rph *RolePermissionHelper) HasPermission(request *http.Request, permission
 		guard = guardName[0]
 	}
 
-	hasPermission, err := models_roles_and_permissions.UserHasPermission(userID, permissionName, guard)
+	hasPermission, err := models.UserHasPermission(userID, permissionName, guard)
 	if err != nil {
 		return false
 	}
@@ -114,7 +114,7 @@ func (rph *RolePermissionHelper) HasAnyPermission(request *http.Request, permiss
 		guard = guardName[0]
 	}
 
-	hasAnyPermission, err := models_roles_and_permissions.UserHasAnyPermission(userID, permissionNames, guard)
+	hasAnyPermission, err := models.UserHasAnyPermission(userID, permissionNames, guard)
 	if err != nil {
 		return false
 	}
@@ -134,7 +134,7 @@ func (rph *RolePermissionHelper) HasAllPermissions(request *http.Request, permis
 		guard = guardName[0]
 	}
 
-	hasAllPermissions, err := models_roles_and_permissions.UserHasAllPermissions(userID, permissionNames, guard)
+	hasAllPermissions, err := models.UserHasAllPermissions(userID, permissionNames, guard)
 	if err != nil {
 		return false
 	}
@@ -149,7 +149,7 @@ func (rph *RolePermissionHelper) GetUserRoles(request *http.Request) ([]string, 
 		return nil, false
 	}
 
-	roles, err := models_roles_and_permissions.GetUserRoles(userID)
+	roles, err := models.GetUserRoles(userID)
 	if err != nil {
 		return nil, false
 	}
@@ -169,7 +169,7 @@ func (rph *RolePermissionHelper) GetUserPermissions(request *http.Request) ([]st
 		return nil, false
 	}
 
-	permissions, err := models_roles_and_permissions.GetUserAllPermissions(userID)
+	permissions, err := models.GetUserAllPermissions(userID)
 	if err != nil {
 		return nil, false
 	}

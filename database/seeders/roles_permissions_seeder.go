@@ -2,10 +2,10 @@ package seeders
 
 import (
 	"log"
-	"semita/app/data/structs"
 	"semita/core/database/database_connections"
 	"semita/core/database/generate_seeders"
-	"semita/core/roles_and_permissions/models_roles_and_permissions"
+	"semita/core/roles_and_permissions/models"
+	"semita/core/roles_and_permissions/structs"
 )
 
 // RolesPermissionsSeeder seeder para roles y permisos
@@ -91,7 +91,7 @@ func (rps *RolesPermissionsSeeder) createPermissions() map[string]*structs.Permi
 	createdPermissions := make(map[string]*structs.PermissionStruct)
 	for _, permData := range permissions {
 		// Crear el permiso directamente (ya se limpiaron los datos)
-		permission, err := models_roles_and_permissions.CreatePermission(permData)
+		permission, err := models.CreatePermission(permData)
 		if err != nil {
 			log.Printf("Error creating permission '%s': %v", permData.Name, err)
 			continue
@@ -112,7 +112,7 @@ func (rps *RolesPermissionsSeeder) createRoles() map[string]*structs.RoleStruct 
 	createdRoles := make(map[string]*structs.RoleStruct)
 	for _, roleData := range roles {
 		// Crear el rol directamente (ya se limpiaron los datos)
-		role, err := models_roles_and_permissions.CreateRole(roleData)
+		role, err := models.CreateRole(roleData)
 		if err != nil {
 			log.Printf("Error creating role '%s': %v", roleData.Name, err)
 			continue
@@ -125,7 +125,7 @@ func (rps *RolesPermissionsSeeder) createRoles() map[string]*structs.RoleStruct 
 func (rps *RolesPermissionsSeeder) assignAllPermissionsToRole(roleName string, roles map[string]*structs.RoleStruct, permissions map[string]*structs.PermissionStruct) {
 	if role, exists := roles[roleName]; exists {
 		for _, permission := range permissions {
-			err := models_roles_and_permissions.AssignPermissionToRole(role.ID, permission.ID)
+			err := models.AssignPermissionToRole(role.ID, permission.ID)
 			if err != nil {
 				log.Printf("Error assigning permission '%s' to role '%s': %v", permission.Name, roleName, err)
 			}
@@ -137,7 +137,7 @@ func (rps *RolesPermissionsSeeder) assignPermissionsToRole(roleName string, role
 	if role, exists := roles[roleName]; exists {
 		for _, permName := range permNames {
 			if permission, exists := permissions[permName]; exists {
-				err := models_roles_and_permissions.AssignPermissionToRole(role.ID, permission.ID)
+				err := models.AssignPermissionToRole(role.ID, permission.ID)
 				if err != nil {
 					log.Printf("Error assigning permission '%s' to role '%s': %v", permission.Name, roleName, err)
 				}

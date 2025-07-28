@@ -5,7 +5,8 @@ import (
 	"semita/app/data/models"
 	"semita/app/data/structs"
 	"semita/core/helpers"
-	"semita/core/roles_and_permissions/models_roles_and_permissions"
+	rolesAndPermissionsModels "semita/core/roles_and_permissions/models"
+	rolesAndPermissionsStructs "semita/core/roles_and_permissions/structs"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -27,7 +28,7 @@ func (upc *UserPermissionController) CheckUserPermissions(c *gin.Context) {
 	}
 
 	// Obtener roles del usuario
-	roles, err := models_roles_and_permissions.GetUserRoles(userID)
+	roles, err := rolesAndPermissionsModels.GetUserRoles(userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "error",
@@ -37,7 +38,7 @@ func (upc *UserPermissionController) CheckUserPermissions(c *gin.Context) {
 	}
 
 	// Obtener permisos directos del usuario
-	directPermissions, err := models_roles_and_permissions.GetUserDirectPermissions(userID)
+	directPermissions, err := rolesAndPermissionsModels.GetUserDirectPermissions(userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "error",
@@ -47,7 +48,7 @@ func (upc *UserPermissionController) CheckUserPermissions(c *gin.Context) {
 	}
 
 	// Obtener todos los permisos del usuario (directos + heredados)
-	allPermissions, err := models_roles_and_permissions.GetUserAllPermissions(userID)
+	allPermissions, err := rolesAndPermissionsModels.GetUserAllPermissions(userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "error",
@@ -66,7 +67,7 @@ func (upc *UserPermissionController) CheckUserPermissions(c *gin.Context) {
 		return
 	}
 
-	userWithPerms := structs.UserWithRolesAndPermissions{
+	userWithPerms := rolesAndPermissionsStructs.UserWithRolesAndPermissions{
 		UserStruct:        user,
 		Roles:             roles,
 		DirectPermissions: directPermissions,
@@ -94,7 +95,7 @@ func (upc *UserPermissionController) CheckCurrentUserPermissions(c *gin.Context)
 	userID := user.ID
 
 	// Obtener roles del usuario
-	roles, err := models_roles_and_permissions.GetUserRoles(userID)
+	roles, err := rolesAndPermissionsModels.GetUserRoles(userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "error",
@@ -104,7 +105,7 @@ func (upc *UserPermissionController) CheckCurrentUserPermissions(c *gin.Context)
 	}
 
 	// Obtener permisos directos del usuario
-	directPermissions, err := models_roles_and_permissions.GetUserDirectPermissions(userID)
+	directPermissions, err := rolesAndPermissionsModels.GetUserDirectPermissions(userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "error",
@@ -114,7 +115,7 @@ func (upc *UserPermissionController) CheckCurrentUserPermissions(c *gin.Context)
 	}
 
 	// Obtener todos los permisos del usuario (directos + heredados)
-	allPermissions, err := models_roles_and_permissions.GetUserAllPermissions(userID)
+	allPermissions, err := rolesAndPermissionsModels.GetUserAllPermissions(userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "error",
@@ -132,7 +133,7 @@ func (upc *UserPermissionController) CheckCurrentUserPermissions(c *gin.Context)
 		Language:  helpers.NullStringToString(user.Language),
 	}
 
-	userWithPerms := structs.UserWithRolesAndPermissions{
+	userWithPerms := rolesAndPermissionsStructs.UserWithRolesAndPermissions{
 		UserStruct:        userData,
 		Roles:             roles,
 		DirectPermissions: directPermissions,
@@ -171,7 +172,7 @@ func (upc *UserPermissionController) CheckRole(c *gin.Context) {
 		return
 	}
 
-	hasRole, err := models_roles_and_permissions.UserHasRoleByName(userID, roleName, guardName)
+	hasRole, err := rolesAndPermissionsModels.UserHasRoleByName(userID, roleName, guardName)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "error",
@@ -217,7 +218,7 @@ func (upc *UserPermissionController) CheckPermission(c *gin.Context) {
 		return
 	}
 
-	hasPermission, err := models_roles_and_permissions.UserHasPermission(userID, permissionName, guardName)
+	hasPermission, err := rolesAndPermissionsModels.UserHasPermission(userID, permissionName, guardName)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "error",
@@ -263,7 +264,7 @@ func (upc *UserPermissionController) CheckCurrentUserRole(c *gin.Context) {
 		return
 	}
 
-	hasRole, err := models_roles_and_permissions.UserHasRoleByName(user.ID, roleName, guardName)
+	hasRole, err := rolesAndPermissionsModels.UserHasRoleByName(user.ID, roleName, guardName)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "error",
@@ -309,7 +310,7 @@ func (upc *UserPermissionController) CheckCurrentUserPermission(c *gin.Context) 
 		return
 	}
 
-	hasPermission, err := models_roles_and_permissions.UserHasPermission(user.ID, permissionName, guardName)
+	hasPermission, err := rolesAndPermissionsModels.UserHasPermission(user.ID, permissionName, guardName)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "error",

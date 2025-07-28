@@ -2,9 +2,10 @@ package base
 
 import (
 	"net/http"
-	"semita/app/data/structs"
 	"semita/core/helpers"
-	"semita/core/roles_and_permissions/models_roles_and_permissions"
+	"semita/core/roles_and_permissions/models"
+	"semita/core/roles_and_permissions/repositories"
+	"semita/core/roles_and_permissions/structs"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -15,7 +16,7 @@ type RoleController struct{}
 
 // Index muestra todos los roles
 func (rc *RoleController) Index(c *gin.Context) {
-	roles, err := models_roles_and_permissions.GetAllRoles()
+	roles, err := models.GetAllRoles()
 	if err != nil {
 		helpers.CreateFlashNotification(c.Writer, c.Request, "error", "Error retrieving roles: "+err.Error())
 		c.Redirect(http.StatusSeeOther, "/")
@@ -40,7 +41,7 @@ func (rc *RoleController) Show(c *gin.Context) {
 		return
 	}
 
-	role, err := models_roles_and_permissions.GetRoleByID(id)
+	role, err := models.GetRoleByID(id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"status":  "error",
@@ -49,7 +50,7 @@ func (rc *RoleController) Show(c *gin.Context) {
 		return
 	}
 
-	permissions, err := models_roles_and_permissions.GetRolePermissions(id)
+	permissions, err := models.GetRolePermissions(id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "error",
@@ -81,7 +82,7 @@ func (rc *RoleController) Store(c *gin.Context) {
 		return
 	}
 
-	role, err := models_roles_and_permissions.CreateRole(roleData)
+	role, err := models.CreateRole(roleData)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "error",
@@ -119,7 +120,7 @@ func (rc *RoleController) Update(c *gin.Context) {
 		return
 	}
 
-	role, err := models_roles_and_permissions.UpdateRole(id, roleData)
+	role, err := repositories.UpdateRole(id, roleData)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "error",
@@ -147,7 +148,7 @@ func (rc *RoleController) Delete(c *gin.Context) {
 		return
 	}
 
-	err = models_roles_and_permissions.DeleteRole(id)
+	err = models.DeleteRole(id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "error",
@@ -174,7 +175,7 @@ func (rc *RoleController) AssignToUser(c *gin.Context) {
 		return
 	}
 
-	err := models_roles_and_permissions.AssignRoleToUser(request.UserID, request.RoleID)
+	err := models.AssignRoleToUser(request.UserID, request.RoleID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "error",
@@ -201,7 +202,7 @@ func (rc *RoleController) RevokeFromUser(c *gin.Context) {
 		return
 	}
 
-	err := models_roles_and_permissions.RevokeRoleFromUser(request.UserID, request.RoleID)
+	err := models.RevokeRoleFromUser(request.UserID, request.RoleID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "error",
@@ -228,7 +229,7 @@ func (rc *RoleController) GetUserRoles(c *gin.Context) {
 		return
 	}
 
-	roles, err := models_roles_and_permissions.GetUserRoles(userID)
+	roles, err := models.GetUserRoles(userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "error",
