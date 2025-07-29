@@ -1,43 +1,21 @@
 package models
 
 import (
-	"semita/app/data/repositories"
-	"semita/app/data/structs"
+	"time"
 )
 
-var tableName = "users"
-
-// GetAllUsers obtiene todos los usuarios a través del repositorio
-func GetAllUsers() ([]structs.UserStruct, error) {
-	return repositories.GetAllUsers()
+type UserStruct struct {
+	ID              int        `json:"id" db:"INT PRIMARY KEY AUTO_INCREMENT"`
+	FirstName       string     `json:"first_name" db:"VARCHAR(255)" nullable:"false"`
+	LastName        string     `json:"last_name" db:"VARCHAR(255)" nullable:"false"`
+	Username        string     `json:"username" db:"VARCHAR(255)" unique:"true" nullable:"false"`
+	Avatar          string     `json:"avatar" db:"VARCHAR(255)" nullable:"true" default:"NULL"`
+	Language        string     `json:"language" db:"VARCHAR(10)" default:"'en'" nullable:"true"`
+	Email           string     `json:"email" db:"VARCHAR(255)" unique:"true" nullable:"false"`
+	EmailVerifiedAt *time.Time `json:"email_verified_at" db:"DATETIME" default:"NULL"`
+	Password        string     `json:"password" db:"VARCHAR(255)" nullable:"false"`
+	CreatedAt       time.Time  `json:"created_at" db:"DATETIME" default:"CURRENT_TIMESTAMP"`
+	UpdatedAt       time.Time  `json:"updated_at" db:"DATETIME" default:"CURRENT_TIMESTAMP"`
 }
 
-// StoreUser guarda un nuevo usuario a través del repositorio
-func StoreUser(storeUser structs.StoreUserStruct) (user structs.UserStruct, err error) {
-	return repositories.StoreUser(storeUser)
-}
-
-// GetUserByID obtiene un usuario por ID a través del repositorio
-func GetUserByID(id string) (structs.UserStruct, error) {
-	return repositories.GetUserByID(id)
-}
-
-// GetUserByEmail obtiene un usuario por email a través del repositorio
-func GetUserByEmail(email string) (structs.UserStruct, error) {
-	return repositories.GetUserByEmail(email)
-}
-
-// UpdateUser actualiza un usuario a través del repositorio
-func UpdateUser(user structs.UpdateUserStruct) error {
-	return repositories.UpdateUser(user)
-}
-
-// DeleteUser elimina un usuario a través del repositorio
-func DeleteUser(id string) error {
-	return repositories.DeleteUser(id)
-}
-
-// MarkEmailVerified marca el email como verificado a través del repositorio
-func MarkEmailVerified(userID int) error {
-	return repositories.MarkEmailVerified(userID)
-}
+type Users []UserStruct
