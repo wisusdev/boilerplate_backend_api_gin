@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-// SeederGenerator genera seeders automáticamente desde structs
+// SeederGenerator genera seeders automáticamente desde providers
 type SeederGenerator struct {
 	OutputDir string
 }
