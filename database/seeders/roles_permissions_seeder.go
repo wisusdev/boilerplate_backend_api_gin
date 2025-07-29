@@ -5,7 +5,7 @@ import (
 	"semita/core/database/database_connections"
 	"semita/core/database/generate_seeders"
 	"semita/core/roles_and_permissions/models"
-	"semita/core/roles_and_permissions/structs"
+	"semita/core/roles_and_permissions/providers"
 )
 
 // RolesPermissionsSeeder seeder para roles y permisos
@@ -65,8 +65,8 @@ func (rps *RolesPermissionsSeeder) Seed() error {
 	return nil
 }
 
-func (rps *RolesPermissionsSeeder) createPermissions() map[string]*structs.PermissionStruct {
-	permissions := []structs.CreatePermissionStruct{
+func (rps *RolesPermissionsSeeder) createPermissions() map[string]*models.PermissionStruct {
+	permissions := []models.CreatePermissionStruct{
 		{Name: "create-users", GuardName: "web", Description: "Crear usuarios"},
 		{Name: "edit-users", GuardName: "web", Description: "Editar usuarios"},
 		{Name: "delete-users", GuardName: "web", Description: "Eliminar usuarios"},
@@ -88,10 +88,10 @@ func (rps *RolesPermissionsSeeder) createPermissions() map[string]*structs.Permi
 		{Name: "view-dashboard", GuardName: "web", Description: "Ver dashboard administrativo"},
 		{Name: "manage-settings", GuardName: "web", Description: "Gestionar configuración del sistema"},
 	}
-	createdPermissions := make(map[string]*structs.PermissionStruct)
+	createdPermissions := make(map[string]*models.PermissionStruct)
 	for _, permData := range permissions {
 		// Crear el permiso directamente (ya se limpiaron los datos)
-		permission, err := models.CreatePermission(permData)
+		permission, err := providers.CreatePermission(permData)
 		if err != nil {
 			log.Printf("Error creating permission '%s': %v", permData.Name, err)
 			continue
@@ -101,18 +101,18 @@ func (rps *RolesPermissionsSeeder) createPermissions() map[string]*structs.Permi
 	return createdPermissions
 }
 
-func (rps *RolesPermissionsSeeder) createRoles() map[string]*structs.RoleStruct {
-	roles := []structs.CreateRoleStruct{
+func (rps *RolesPermissionsSeeder) createRoles() map[string]*models.RoleStruct {
+	roles := []models.CreateRoleStruct{
 		{Name: "super-admin", GuardName: "web", Description: "Super administrador con todos los permisos"},
 		{Name: "admin", GuardName: "web", Description: "Administrador del sistema"},
 		{Name: "editor", GuardName: "web", Description: "Editor de contenido"},
 		{Name: "moderator", GuardName: "web", Description: "Moderador"},
 		{Name: "user", GuardName: "web", Description: "Usuario regular"},
 	}
-	createdRoles := make(map[string]*structs.RoleStruct)
+	createdRoles := make(map[string]*models.RoleStruct)
 	for _, roleData := range roles {
 		// Crear el rol directamente (ya se limpiaron los datos)
-		role, err := models.CreateRole(roleData)
+		role, err := providers.CreateRole(roleData)
 		if err != nil {
 			log.Printf("Error creating role '%s': %v", roleData.Name, err)
 			continue
@@ -122,10 +122,10 @@ func (rps *RolesPermissionsSeeder) createRoles() map[string]*structs.RoleStruct 
 	return createdRoles
 }
 
-func (rps *RolesPermissionsSeeder) assignAllPermissionsToRole(roleName string, roles map[string]*structs.RoleStruct, permissions map[string]*structs.PermissionStruct) {
+func (rps *RolesPermissionsSeeder) assignAllPermissionsToRole(roleName string, roles map[string]*models.RoleStruct, permissions map[string]*models.PermissionStruct) {
 	if role, exists := roles[roleName]; exists {
 		for _, permission := range permissions {
-			err := models.AssignPermissionToRole(role.ID, permission.ID)
+			err := providers.AssignPermissionToRole(role.ID, permission.ID)
 			if err != nil {
 				log.Printf("Error assigning permission '%s' to role '%s': %v", permission.Name, roleName, err)
 			}
@@ -133,11 +133,11 @@ func (rps *RolesPermissionsSeeder) assignAllPermissionsToRole(roleName string, r
 	}
 }
 
-func (rps *RolesPermissionsSeeder) assignPermissionsToRole(roleName string, roles map[string]*structs.RoleStruct, permissions map[string]*structs.PermissionStruct, permNames []string) {
+func (rps *RolesPermissionsSeeder) assignPermissionsToRole(roleName string, roles map[string]*models.RoleStruct, permissions map[string]*models.PermissionStruct, permNames []string) {
 	if role, exists := roles[roleName]; exists {
 		for _, permName := range permNames {
 			if permission, exists := permissions[permName]; exists {
-				err := models.AssignPermissionToRole(role.ID, permission.ID)
+				err := providers.AssignPermissionToRole(role.ID, permission.ID)
 				if err != nil {
 					log.Printf("Error assigning permission '%s' to role '%s': %v", permission.Name, roleName, err)
 				}
