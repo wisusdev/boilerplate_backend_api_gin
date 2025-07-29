@@ -1,7 +1,7 @@
 package repositories
 
 import (
-	"semita/app/data/structs"
+	"semita/app/data/models"
 	"semita/core/common/nulltypes"
 	"semita/core/database/database_connections"
 	"semita/core/helpers"
@@ -46,8 +46,8 @@ func parseDateTimePtr(dateStr string) *time.Time {
 // scanUserRow escanea una fila de usuario y maneja la conversión de fechas
 func scanUserRow(scanner interface {
 	Scan(dest ...interface{}) error
-}) (structs.UserStruct, error) {
-	var user structs.UserStruct
+}) (models.UserStruct, error) {
+	var user models.UserStruct
 	var createdAtStr, updatedAtStr string
 	var emailVerifiedAtStr nulltypes.NullString
 	var avatarPtr *string
@@ -65,7 +65,7 @@ func scanUserRow(scanner interface {
 	}
 
 	if err != nil {
-		return structs.UserStruct{}, err
+		return models.UserStruct{}, err
 	}
 
 	// Convertir las fechas usando la función helper
@@ -81,7 +81,7 @@ func scanUserRow(scanner interface {
 	return user, nil
 }
 
-func (r *UserRepository) Where(field string, value interface{}) ([]structs.UserStruct, error) {
+func (r *UserRepository) Where(field string, value interface{}) ([]models.UserStruct, error) {
 	query := "SELECT id, first_name, last_name, username, avatar, language, email, email_verified_at, password, created_at, updated_at FROM users WHERE " + field + " = ?"
 	rows, err := r.DB.Query(query, value)
 	if err != nil {
@@ -89,7 +89,7 @@ func (r *UserRepository) Where(field string, value interface{}) ([]structs.UserS
 	}
 	defer rows.Close()
 
-	var users []structs.UserStruct
+	var users []models.UserStruct
 	for rows.Next() {
 		user, err := scanUserRow(rows)
 		if err != nil {
@@ -100,7 +100,7 @@ func (r *UserRepository) Where(field string, value interface{}) ([]structs.UserS
 	return users, nil
 }
 
-func GetAllUsers() ([]structs.UserStruct, error) {
+func GetAllUsers() ([]models.UserStruct, error) {
 	// Instanciamos la conexión a la base de datos
 	var database = database_connections.DatabaseConnectSQL()
 
@@ -118,7 +118,7 @@ func GetAllUsers() ([]structs.UserStruct, error) {
 	defer rows.Close()
 
 	// Creamos un slice para almacenar los usuarios
-	var users []structs.UserStruct
+	var users []models.UserStruct
 
 	// Iteramos sobre los resultados y los agregamos al slice
 	for rows.Next() {
@@ -132,7 +132,7 @@ func GetAllUsers() ([]structs.UserStruct, error) {
 	return users, nil
 }
 
-func StoreUser(storeUser structs.StoreUserStruct) (user structs.UserStruct, err error) {
+func StoreUser(storeUser models.UserStruct) (user models.UserStruct, err error) {
 	// Instanciamos la conexion a la base de datos
 	var database = database_connections.DatabaseConnectSQL()
 	defer database.Close()
@@ -144,26 +144,26 @@ func StoreUser(storeUser structs.StoreUserStruct) (user structs.UserStruct, err 
 	result, errorErr := database.Exec(query, storeUser.FirstName, storeUser.LastName, storeUser.Username, storeUser.Email, storeUser.Password)
 	if errorErr != nil {
 		helpers.Logs("ERROR", "Error al guardar el usuario: "+errorErr.Error())
-		return structs.UserStruct{}, errorErr
+		return models.UserStruct{}, errorErr
 	}
 
 	var lastInsertID int64
 	lastInsertID, err = result.LastInsertId()
 	if err != nil {
 		helpers.Logs("ERROR", "Error al obtener el ID del usuario insertado: "+err.Error())
-		return structs.UserStruct{}, err
+		return models.UserStruct{}, err
 	}
 
 	user, err = GetUserByID(strconv.FormatInt(lastInsertID, 10))
 	if err != nil {
 		helpers.Logs("ERROR", "Error al obtener el usuario recién insertado: "+err.Error())
-		return structs.UserStruct{}, err
+		return models.UserStruct{}, err
 	}
 
 	return user, nil
 }
 
-func GetUserByID(id string) (user structs.UserStruct, err error) {
+func GetUserByID(id string) (user models.UserStruct, err error) {
 	// Instanciamos la conexión a la base de datos
 	var database = database_connections.DatabaseConnectSQL()
 
@@ -176,13 +176,13 @@ func GetUserByID(id string) (user structs.UserStruct, err error) {
 	// Ejecutamos la consulta y obtenemos los resultados usando la función helper
 	user, err = scanUserRow(database.QueryRow(query, id))
 	if err != nil {
-		return structs.UserStruct{}, err
+		return models.UserStruct{}, err
 	}
 
 	return user, nil
 }
 
-func GetUserByEmail(email string) (user structs.UserStruct, err error) {
+func GetUserByEmail(email string) (user models.UserStruct, err error) {
 	// Instanciamos la conexión a la base de datos
 	var database = database_connections.DatabaseConnectSQL()
 
@@ -196,13 +196,13 @@ func GetUserByEmail(email string) (user structs.UserStruct, err error) {
 	user, err = scanUserRow(database.QueryRow(query, email))
 	if err != nil {
 		helpers.Logs("ERROR", "Error al obtener el usuario por email: "+err.Error())
-		return structs.UserStruct{}, err
+		return models.UserStruct{}, err
 	}
 
 	return user, nil
 }
 
-func UpdateUser(user structs.UpdateUserStruct) (err error) {
+func UpdateUser(user models.UserStruct) (err error) {
 	// Instanciamos la conexión a la base de datos
 	var database = database_connections.DatabaseConnectSQL()
 
@@ -213,7 +213,7 @@ func UpdateUser(user structs.UpdateUserStruct) (err error) {
 	var query = "UPDATE " + userTable + " SET first_name = ?, email = ?, password = ? WHERE id = ?"
 
 	// Ejecutamos la consulta con los datos del usuario
-	_, err = database.Exec(query, user.Name, user.Email, user.Password, user.ID)
+	_, err = database.Exec(query, user.FirstName, user.Email, user.Password, user.ID)
 
 	// Si hubo un error al ejecutar la consulta, retornamos el error
 	if err != nil {
