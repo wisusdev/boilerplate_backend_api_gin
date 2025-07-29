@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-// StructToSchemaGenerator convierte structs a código de Schema Builder
+// StructToSchemaGenerator convierte providers a código de Schema Builder
 type StructToSchemaGenerator struct{}
 
 // NewStructToSchemaGenerator crea una nueva instancia del generador
