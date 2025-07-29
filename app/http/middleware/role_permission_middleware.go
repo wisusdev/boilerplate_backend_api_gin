@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"semita/core/helpers"
-	"semita/core/roles_and_permissions/models"
+	"semita/core/roles_and_permissions/providers"
 )
 
 // getUserFromSession obtiene el usuario autenticado de la sesión
@@ -43,7 +43,7 @@ func RequireRole(roleName string, guardName ...string) gin.HandlerFunc {
 		}
 
 		// Verificar si el usuario tiene el rol
-		hasRole, err := models.UserHasRoleByName(userID, roleName, guard)
+		hasRole, err := providers.UserHasRoleByName(userID, roleName, guard)
 		if err != nil {
 			helpers.CreateFlashNotification(c.Writer, c.Request, "error", "Error checking user permissions.")
 			c.Redirect(http.StatusSeeOther, "/")
@@ -89,7 +89,7 @@ func RequireAnyRole(roleNames []string, guardName ...string) gin.HandlerFunc {
 		}
 
 		// Verificar si el usuario tiene al menos uno de los roles
-		hasAnyRole, err := models.UserHasAnyRole(userID, roleNames, guard)
+		hasAnyRole, err := providers.UserHasAnyRole(userID, roleNames, guard)
 		if err != nil {
 			helpers.CreateFlashNotification(c.Writer, c.Request, "error", "Error checking user permissions.")
 			c.Redirect(http.StatusSeeOther, "/")
@@ -135,7 +135,7 @@ func RequireAllRoles(roleNames []string, guardName ...string) gin.HandlerFunc {
 		}
 
 		// Verificar si el usuario tiene todos los roles
-		hasAllRoles, err := models.UserHasAllRoles(userID, roleNames, guard)
+		hasAllRoles, err := providers.UserHasAllRoles(userID, roleNames, guard)
 		if err != nil {
 			helpers.CreateFlashNotification(c.Writer, c.Request, "error", "Error checking user permissions.")
 			c.Redirect(http.StatusSeeOther, "/")
@@ -181,7 +181,7 @@ func RequirePermission(permissionName string, guardName ...string) gin.HandlerFu
 		}
 
 		// Verificar si el usuario tiene el permiso
-		hasPermission, err := models.UserHasPermission(userID, permissionName, guard)
+		hasPermission, err := providers.UserHasPermission(userID, permissionName, guard)
 		if err != nil {
 			helpers.CreateFlashNotification(c.Writer, c.Request, "error", "Error checking user permissions.")
 			c.Redirect(http.StatusSeeOther, "/")
@@ -227,7 +227,7 @@ func RequireAnyPermission(permissionNames []string, guardName ...string) gin.Han
 		}
 
 		// Verificar si el usuario tiene al menos uno de los permisos
-		hasAnyPermission, err := models.UserHasAnyPermission(userID, permissionNames, guard)
+		hasAnyPermission, err := providers.UserHasAnyPermission(userID, permissionNames, guard)
 		if err != nil {
 			helpers.CreateFlashNotification(c.Writer, c.Request, "error", "Error checking user permissions.")
 			c.Redirect(http.StatusSeeOther, "/")
@@ -273,7 +273,7 @@ func RequireAllPermissions(permissionNames []string, guardName ...string) gin.Ha
 		}
 
 		// Verificar si el usuario tiene todos los permisos
-		hasAllPermissions, err := models.UserHasAllPermissions(userID, permissionNames, guard)
+		hasAllPermissions, err := providers.UserHasAllPermissions(userID, permissionNames, guard)
 		if err != nil {
 			helpers.CreateFlashNotification(c.Writer, c.Request, "error", "Error checking user permissions.")
 			c.Redirect(http.StatusSeeOther, "/")
@@ -319,7 +319,7 @@ func CheckRoleOrPermission(roleName string, permissionName string, guardName ...
 		}
 
 		// Verificar si el usuario tiene el rol o el permiso
-		hasRole, err := models.UserHasRoleByName(userID, roleName, guard)
+		hasRole, err := providers.UserHasRoleByName(userID, roleName, guard)
 		if err != nil {
 			helpers.CreateFlashNotification(c.Writer, c.Request, "error", "Error checking user permissions.")
 			c.Redirect(http.StatusSeeOther, "/")
@@ -332,7 +332,7 @@ func CheckRoleOrPermission(roleName string, permissionName string, guardName ...
 			return
 		}
 
-		hasPermission, err := models.UserHasPermission(userID, permissionName, guard)
+		hasPermission, err := providers.UserHasPermission(userID, permissionName, guard)
 		if err != nil {
 			helpers.CreateFlashNotification(c.Writer, c.Request, "error", "Error checking user permissions.")
 			c.Redirect(http.StatusSeeOther, "/")
