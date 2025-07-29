@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-// MigrationGenerator genera migraciones automáticamente desde structs
+// MigrationGenerator genera migraciones automáticamente desde providers
 type MigrationGenerator struct {
 	OutputDir string
 }
