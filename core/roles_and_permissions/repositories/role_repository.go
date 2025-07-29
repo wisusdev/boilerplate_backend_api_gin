@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"semita/core/common/nulltypes"
 	"semita/core/database/database_connections"
-	"semita/core/roles_and_permissions/structs"
+	"semita/core/roles_and_permissions/models"
 	"strings"
 )
 
 var rolesTable = "roles"
 var userRolesTable = "user_roles"
 
-func GetAllRoles() ([]structs.RoleStruct, error) {
+func GetAllRoles() ([]models.RoleStruct, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
@@ -22,9 +22,9 @@ func GetAllRoles() ([]structs.RoleStruct, error) {
 	}
 	defer rows.Close()
 
-	var roles []structs.RoleStruct
+	var roles []models.RoleStruct
 	for rows.Next() {
-		var role structs.RoleStruct
+		var role models.RoleStruct
 		var description nulltypes.NullString
 		err = rows.Scan(&role.ID, &role.Name, &role.GuardName, &description, &role.CreatedAt, &role.UpdatedAt)
 		if err != nil {
@@ -37,14 +37,14 @@ func GetAllRoles() ([]structs.RoleStruct, error) {
 	return roles, nil
 }
 
-func GetRoleByID(id int) (*structs.RoleStruct, error) {
+func GetRoleByID(id int) (*models.RoleStruct, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
 	query := `SELECT id, name, guard_name, description, created_at, updated_at FROM ` + rolesTable + ` WHERE id = ?`
 	row := database.QueryRow(query, id)
 
-	var role structs.RoleStruct
+	var role models.RoleStruct
 	var description nulltypes.NullString
 	err := row.Scan(&role.ID, &role.Name, &role.GuardName, &description, &role.CreatedAt, &role.UpdatedAt)
 	if err != nil {
@@ -55,14 +55,14 @@ func GetRoleByID(id int) (*structs.RoleStruct, error) {
 	return &role, nil
 }
 
-func GetRoleByName(name string, guardName string) (*structs.RoleStruct, error) {
+func GetRoleByName(name string, guardName string) (*models.RoleStruct, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
 	query := `SELECT id, name, guard_name, description, created_at, updated_at FROM ` + rolesTable + ` WHERE name = ? AND guard_name = ?`
 	row := database.QueryRow(query, name, guardName)
 
-	var role structs.RoleStruct
+	var role models.RoleStruct
 	var description nulltypes.NullString
 	err := row.Scan(&role.ID, &role.Name, &role.GuardName, &description, &role.CreatedAt, &role.UpdatedAt)
 	if err != nil {
@@ -73,7 +73,7 @@ func GetRoleByName(name string, guardName string) (*structs.RoleStruct, error) {
 	return &role, nil
 }
 
-func CreateRole(roleData structs.CreateRoleStruct) (*structs.RoleStruct, error) {
+func CreateRole(roleData models.CreateRoleStruct) (*models.RoleStruct, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
@@ -95,7 +95,7 @@ func CreateRole(roleData structs.CreateRoleStruct) (*structs.RoleStruct, error) 
 	return GetRoleByID(int(id))
 }
 
-func UpdateRole(id int, roleData structs.CreateRoleStruct) (*structs.RoleStruct, error) {
+func UpdateRole(id int, roleData models.CreateRoleStruct) (*models.RoleStruct, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
@@ -117,7 +117,7 @@ func DeleteRole(id int) error {
 	return err
 }
 
-func GetUserRoles(userID int) ([]structs.RoleStruct, error) {
+func GetUserRoles(userID int) ([]models.RoleStruct, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
@@ -134,9 +134,9 @@ func GetUserRoles(userID int) ([]structs.RoleStruct, error) {
 	}
 	defer rows.Close()
 
-	var roles []structs.RoleStruct
+	var roles []models.RoleStruct
 	for rows.Next() {
-		var role structs.RoleStruct
+		var role models.RoleStruct
 		var description nulltypes.NullString
 		err = rows.Scan(&role.ID, &role.Name, &role.GuardName, &description, &role.CreatedAt, &role.UpdatedAt)
 		if err != nil {

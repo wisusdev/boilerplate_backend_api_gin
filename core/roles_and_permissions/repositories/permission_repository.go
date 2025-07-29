@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"semita/core/common/nulltypes"
 	"semita/core/database/database_connections"
-	"semita/core/roles_and_permissions/structs"
+	"semita/core/roles_and_permissions/models"
 	"strings"
 )
 
@@ -12,7 +12,7 @@ var permissionsTable = "permissions"
 var rolePermissionsTable = "role_permissions"
 var userPermissionsTable = "user_permissions"
 
-func GetAllPermissions() ([]structs.PermissionStruct, error) {
+func GetAllPermissions() ([]models.PermissionStruct, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
@@ -23,9 +23,9 @@ func GetAllPermissions() ([]structs.PermissionStruct, error) {
 	}
 	defer rows.Close()
 
-	var permissions []structs.PermissionStruct
+	var permissions []models.PermissionStruct
 	for rows.Next() {
-		var permission structs.PermissionStruct
+		var permission models.PermissionStruct
 		var description nulltypes.NullString
 		err = rows.Scan(&permission.ID, &permission.Name, &permission.GuardName, &description, &permission.CreatedAt, &permission.UpdatedAt)
 		if err != nil {
@@ -38,14 +38,14 @@ func GetAllPermissions() ([]structs.PermissionStruct, error) {
 	return permissions, nil
 }
 
-func GetPermissionByID(id int) (*structs.PermissionStruct, error) {
+func GetPermissionByID(id int) (*models.PermissionStruct, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
 	query := `SELECT id, name, guard_name, description, created_at, updated_at FROM ` + permissionsTable + ` WHERE id = ?`
 	row := database.QueryRow(query, id)
 
-	var permission structs.PermissionStruct
+	var permission models.PermissionStruct
 	var description nulltypes.NullString
 	err := row.Scan(&permission.ID, &permission.Name, &permission.GuardName, &description, &permission.CreatedAt, &permission.UpdatedAt)
 	if err != nil {
@@ -56,14 +56,14 @@ func GetPermissionByID(id int) (*structs.PermissionStruct, error) {
 	return &permission, nil
 }
 
-func GetPermissionByName(name string, guardName string) (*structs.PermissionStruct, error) {
+func GetPermissionByName(name string, guardName string) (*models.PermissionStruct, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
 	query := `SELECT id, name, guard_name, description, created_at, updated_at FROM ` + permissionsTable + ` WHERE name = ? AND guard_name = ?`
 	row := database.QueryRow(query, name, guardName)
 
-	var permission structs.PermissionStruct
+	var permission models.PermissionStruct
 	var description nulltypes.NullString
 	err := row.Scan(&permission.ID, &permission.Name, &permission.GuardName, &description, &permission.CreatedAt, &permission.UpdatedAt)
 	if err != nil {
@@ -74,7 +74,7 @@ func GetPermissionByName(name string, guardName string) (*structs.PermissionStru
 	return &permission, nil
 }
 
-func CreatePermission(permissionData structs.CreatePermissionStruct) (*structs.PermissionStruct, error) {
+func CreatePermission(permissionData models.CreatePermissionStruct) (*models.PermissionStruct, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
@@ -96,7 +96,7 @@ func CreatePermission(permissionData structs.CreatePermissionStruct) (*structs.P
 	return GetPermissionByID(int(id))
 }
 
-func UpdatePermission(id int, permissionData structs.CreatePermissionStruct) (*structs.PermissionStruct, error) {
+func UpdatePermission(id int, permissionData models.CreatePermissionStruct) (*models.PermissionStruct, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
@@ -118,7 +118,7 @@ func DeletePermission(id int) error {
 	return err
 }
 
-func GetRolePermissions(roleID int) ([]structs.PermissionStruct, error) {
+func GetRolePermissions(roleID int) ([]models.PermissionStruct, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
@@ -135,9 +135,9 @@ func GetRolePermissions(roleID int) ([]structs.PermissionStruct, error) {
 	}
 	defer rows.Close()
 
-	var permissions []structs.PermissionStruct
+	var permissions []models.PermissionStruct
 	for rows.Next() {
-		var permission structs.PermissionStruct
+		var permission models.PermissionStruct
 		var description nulltypes.NullString
 		err = rows.Scan(&permission.ID, &permission.Name, &permission.GuardName, &description, &permission.CreatedAt, &permission.UpdatedAt)
 		if err != nil {
@@ -150,7 +150,7 @@ func GetRolePermissions(roleID int) ([]structs.PermissionStruct, error) {
 	return permissions, nil
 }
 
-func GetUserDirectPermissions(userID int) ([]structs.PermissionStruct, error) {
+func GetUserDirectPermissions(userID int) ([]models.PermissionStruct, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
@@ -167,9 +167,9 @@ func GetUserDirectPermissions(userID int) ([]structs.PermissionStruct, error) {
 	}
 	defer rows.Close()
 
-	var permissions []structs.PermissionStruct
+	var permissions []models.PermissionStruct
 	for rows.Next() {
-		var permission structs.PermissionStruct
+		var permission models.PermissionStruct
 		var description nulltypes.NullString
 		err = rows.Scan(&permission.ID, &permission.Name, &permission.GuardName, &description, &permission.CreatedAt, &permission.UpdatedAt)
 		if err != nil {
@@ -182,7 +182,7 @@ func GetUserDirectPermissions(userID int) ([]structs.PermissionStruct, error) {
 	return permissions, nil
 }
 
-func GetUserAllPermissions(userID int) ([]structs.PermissionStruct, error) {
+func GetUserAllPermissions(userID int) ([]models.PermissionStruct, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
@@ -209,9 +209,9 @@ func GetUserAllPermissions(userID int) ([]structs.PermissionStruct, error) {
 	}
 	defer rows.Close()
 
-	var permissions []structs.PermissionStruct
+	var permissions []models.PermissionStruct
 	for rows.Next() {
-		var permission structs.PermissionStruct
+		var permission models.PermissionStruct
 		var description nulltypes.NullString
 		err = rows.Scan(&permission.ID, &permission.Name, &permission.GuardName, &description, &permission.CreatedAt, &permission.UpdatedAt)
 		if err != nil {

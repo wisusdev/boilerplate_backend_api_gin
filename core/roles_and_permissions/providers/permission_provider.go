@@ -1,32 +1,32 @@
-package models
+package providers
 
 import (
+	"semita/core/roles_and_permissions/models"
 	"semita/core/roles_and_permissions/repositories"
-	"semita/core/roles_and_permissions/structs"
 )
 
 // GetAllPermissions obtiene todos los permisos
-func GetAllPermissions() ([]structs.PermissionStruct, error) {
+func GetAllPermissions() ([]models.PermissionStruct, error) {
 	return repositories.GetAllPermissions()
 }
 
 // GetPermissionByID obtiene un permiso por su ID
-func GetPermissionByID(id int) (*structs.PermissionStruct, error) {
+func GetPermissionByID(id int) (*models.PermissionStruct, error) {
 	return repositories.GetPermissionByID(id)
 }
 
 // GetPermissionByName obtiene un permiso por su nombre
-func GetPermissionByName(name string, guardName string) (*structs.PermissionStruct, error) {
+func GetPermissionByName(name string, guardName string) (*models.PermissionStruct, error) {
 	return repositories.GetPermissionByName(name, guardName)
 }
 
 // CreatePermission crea un nuevo permiso
-func CreatePermission(permissionData structs.CreatePermissionStruct) (*structs.PermissionStruct, error) {
+func CreatePermission(permissionData models.CreatePermissionStruct) (*models.PermissionStruct, error) {
 	return repositories.CreatePermission(permissionData)
 }
 
 // UpdatePermission actualiza un permiso existente
-func UpdatePermission(id int, permissionData structs.CreatePermissionStruct) (*structs.PermissionStruct, error) {
+func UpdatePermission(id int, permissionData models.CreatePermissionStruct) (*models.PermissionStruct, error) {
 	return repositories.UpdatePermission(id, permissionData)
 }
 
@@ -36,17 +36,17 @@ func DeletePermission(id int) error {
 }
 
 // GetRolePermissions obtiene todos los permisos de un rol
-func GetRolePermissions(roleID int) ([]structs.PermissionStruct, error) {
+func GetRolePermissions(roleID int) ([]models.PermissionStruct, error) {
 	return repositories.GetRolePermissions(roleID)
 }
 
 // GetUserDirectPermissions obtiene los permisos directos de un usuario (no heredados de roles)
-func GetUserDirectPermissions(userID int) ([]structs.PermissionStruct, error) {
+func GetUserDirectPermissions(userID int) ([]models.PermissionStruct, error) {
 	return repositories.GetUserDirectPermissions(userID)
 }
 
 // GetUserAllPermissions obtiene todos los permisos de un usuario (directos + heredados de roles)
-func GetUserAllPermissions(userID int) ([]structs.PermissionStruct, error) {
+func GetUserAllPermissions(userID int) ([]models.PermissionStruct, error) {
 	return repositories.GetUserAllPermissions(userID)
 }
 

@@ -1,32 +1,32 @@
-package models
+package providers
 
 import (
+	"semita/core/roles_and_permissions/models"
 	"semita/core/roles_and_permissions/repositories"
-	"semita/core/roles_and_permissions/structs"
 )
 
 // GetAllRoles obtiene todos los roles
-func GetAllRoles() ([]structs.RoleStruct, error) {
+func GetAllRoles() ([]models.RoleStruct, error) {
 	return repositories.GetAllRoles()
 }
 
 // GetRoleByID obtiene un rol por su ID
-func GetRoleByID(id int) (*structs.RoleStruct, error) {
+func GetRoleByID(id int) (*models.RoleStruct, error) {
 	return repositories.GetRoleByID(id)
 }
 
 // GetRoleByName obtiene un rol por su nombre
-func GetRoleByName(name string, guardName string) (*structs.RoleStruct, error) {
+func GetRoleByName(name string, guardName string) (*models.RoleStruct, error) {
 	return repositories.GetRoleByName(name, guardName)
 }
 
 // CreateRole crea un nuevo rol
-func CreateRole(role structs.CreateRoleStruct) (*structs.RoleStruct, error) {
+func CreateRole(role models.CreateRoleStruct) (*models.RoleStruct, error) {
 	return repositories.CreateRole(role)
 }
 
 // UpdateRole actualiza un rol existente
-func UpdateRole(id int, role structs.CreateRoleStruct) (*structs.RoleStruct, error) {
+func UpdateRole(id int, role models.CreateRoleStruct) (*models.RoleStruct, error) {
 	return repositories.UpdateRole(id, role)
 }
 
@@ -36,7 +36,7 @@ func DeleteRole(id int) error {
 }
 
 // GetUserRoles obtiene todos los roles de un usuario
-func GetUserRoles(userID int) ([]structs.RoleStruct, error) {
+func GetUserRoles(userID int) ([]models.RoleStruct, error) {
 	return repositories.GetUserRoles(userID)
 }
 
