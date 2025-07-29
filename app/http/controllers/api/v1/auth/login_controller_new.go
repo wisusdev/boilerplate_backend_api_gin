@@ -2,7 +2,7 @@ package auth
 
 import (
 	"net/http"
-	"semita/app/data/models"
+	"semita/app/data/providers"
 	"semita/app/http/requests"
 	"semita/app/http/resources"
 	"semita/core/oauth/oauth_models"
@@ -23,7 +23,7 @@ func LoginNew(context *gin.Context) {
 	}
 
 	// Buscar usuario por email
-	storedUser, err := models.GetUserByEmail(request.Email)
+	storedUser, err := providers.GetUserByEmail(request.Email)
 	if err != nil {
 		context.JSON(http.StatusUnauthorized, validators.ValidationResponse{
 			Errors: []validators.ValidationErrorResponse{{
@@ -133,7 +133,7 @@ func RegisterNew(context *gin.Context) {
 	}
 
 	// Guardar usuario (simulado)
-	// En tu implementación real usarías models.StoreUser(user)
+	// En tu implementación real usarías providers.StoreUser(user)
 
 	context.JSON(http.StatusCreated, gin.H{
 		"message": "Usuario registrado exitosamente",
@@ -157,7 +157,7 @@ func ForgotPasswordNew(context *gin.Context) {
 	// resetURL := "http://" + utils.GetEnv("APP_URL") + "/auth/reset-password?token=" + token
 
 	// Guardar token en BD
-	// _ = models.CreatePasswordReset(request.Email, token)
+	// _ = providers.CreatePasswordReset(request.Email, token)
 
 	// Enviar email
 	// errorSendEmail := notifications.SendPasswordReset(request.Email, resetURL)
@@ -176,7 +176,7 @@ func ResetPasswordNew(context *gin.Context) {
 	}
 
 	// Verificar token válido
-	// passwordReset, err := models.GetPasswordResetByToken(request.Token)
+	// passwordReset, err := providers.GetPasswordResetByToken(request.Token)
 	// if err != nil {
 	//     context.JSON(http.StatusBadRequest, validators.ValidationResponse{...})
 	//     return
@@ -200,17 +200,17 @@ func ResetPasswordNew(context *gin.Context) {
 	}
 
 	// Actualizar contraseña del usuario
-	// user, err := models.GetUserByEmail(request.Email)
+	// user, err := providers.GetUserByEmail(request.Email)
 	// if err != nil { ... }
 
-	// update := structs.UpdateUserStruct{
+	// update := providers.UpdateUserStruct{
 	//     ID: user.ID,
 	//     Password: string(hashedPassword),
 	// }
-	// err = models.UpdateUser(update)
+	// err = providers.UpdateUser(update)
 
 	// Eliminar token usado
-	// _ = models.DeletePasswordReset(request.Token)
+	// _ = providers.DeletePasswordReset(request.Token)
 
 	_ = hashedPassword // Usar la variable para evitar error de compilación
 

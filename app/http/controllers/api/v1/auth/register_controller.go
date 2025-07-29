@@ -3,7 +3,7 @@ package auth
 import (
 	"net/http"
 	"semita/app/data/models"
-	"semita/app/data/structs"
+	"semita/app/data/providers"
 	"semita/app/http/requests"
 	"semita/app/http/resources"
 	"semita/core/helpers"
@@ -24,7 +24,7 @@ func Register(context *gin.Context) {
 		return
 	}
 
-	existingUser, _ := models.GetUserByEmail(req.Email)
+	existingUser, _ := providers.GetUserByEmail(req.Email)
 	if existingUser.ID > 0 {
 		context.JSON(http.StatusConflict, gin.H{"errors": []gin.H{{
 			"status": "409",
@@ -44,7 +44,7 @@ func Register(context *gin.Context) {
 		return
 	}
 
-	userToStore := structs.StoreUserStruct{
+	userToStore := models.UserStruct{
 		FirstName: req.FirstName,
 		LastName:  req.LastName,
 		Username:  req.Username,
@@ -52,7 +52,7 @@ func Register(context *gin.Context) {
 		Password:  string(hashedPassword),
 	}
 
-	_, errorStore := models.StoreUser(userToStore)
+	_, errorStore := providers.StoreUser(userToStore)
 	if errorStore != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"errors": []gin.H{{
 			"status": "500",
@@ -62,7 +62,7 @@ func Register(context *gin.Context) {
 		return
 	}
 
-	storedUser, err := models.GetUserByEmail(req.Email)
+	storedUser, err := providers.GetUserByEmail(req.Email)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"errors": []gin.H{{
 			"status": "500",

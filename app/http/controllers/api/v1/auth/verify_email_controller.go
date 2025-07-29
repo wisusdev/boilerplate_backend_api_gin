@@ -2,7 +2,7 @@ package auth
 
 import (
 	"net/http"
-	"semita/app/data/models"
+	"semita/app/data/providers"
 	"semita/app/notifications"
 	"semita/core/helpers"
 	"strconv"
@@ -13,7 +13,7 @@ import (
 func ResendEmailVerify(context *gin.Context) {
 	// Simulación: obtener usuario autenticado (en real, usar JWT o sesión)
 	userId := 1 // TODO: obtener del contexto real
-	user, err := models.GetUserByID(strconv.Itoa(userId))
+	user, err := providers.GetUserByID(strconv.Itoa(userId))
 	if err != nil {
 		context.JSON(http.StatusNotFound, gin.H{"error": "Usuario no encontrado"})
 		return
@@ -37,7 +37,7 @@ func VerifyEmail(context *gin.Context) {
 		return
 	}
 	// Buscar usuario por ID
-	user, err := models.GetUserByID(id)
+	user, err := providers.GetUserByID(id)
 	if err != nil {
 		context.JSON(http.StatusNotFound, gin.H{"error": "Usuario no encontrado"})
 		return
@@ -48,7 +48,7 @@ func VerifyEmail(context *gin.Context) {
 		return
 	}
 	// Marcar email como verificado
-	err = models.MarkEmailVerified(user.ID)
+	err = providers.MarkEmailVerified(user.ID)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": "No se pudo verificar el email"})
 		return

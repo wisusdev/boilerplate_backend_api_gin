@@ -3,7 +3,7 @@ package auth
 import (
 	"net/http"
 	"semita/app/data/models"
-	"semita/app/data/structs"
+	"semita/app/data/providers"
 	"semita/app/http/requests"
 	"semita/app/notifications"
 	"semita/config"
@@ -24,7 +24,7 @@ func ForgotPassword(context *gin.Context) {
 		}}})
 		return
 	}
-	user, err := models.GetUserByEmail(req.Email)
+	user, err := providers.GetUserByEmail(req.Email)
 	if err != nil {
 		context.JSON(http.StatusOK, gin.H{"message": "Si el email existe, se enviará un enlace de recuperación"})
 		return
@@ -32,7 +32,7 @@ func ForgotPassword(context *gin.Context) {
 
 	token := helpers.GenerateResetToken(user.Email)
 	resetURL := "http://" + config.AppConfig().Url + "/auth/reset-password?token=" + token
-	_ = models.CreatePasswordReset(user.Email, token) // Guardar token en BD
+	_ = providers.CreatePasswordReset(user.Email, token) // Guardar token en BD
 	err = notifications.SendPasswordReset(user.Email, resetURL)
 
 	if err != nil {
@@ -57,7 +57,7 @@ func ResetPassword(context *gin.Context) {
 		return
 	}
 
-	pr, err := models.GetPasswordResetByToken(req.Token)
+	pr, err := providers.GetPasswordResetByToken(req.Token)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"errors": []gin.H{{
 			"status": "400",
@@ -68,7 +68,7 @@ func ResetPassword(context *gin.Context) {
 	}
 
 	if time.Since(pr.CreatedAt) > 2*time.Hour {
-		_ = models.DeletePasswordReset(req.Token)
+		_ = providers.DeletePasswordReset(req.Token)
 		context.JSON(http.StatusBadRequest, gin.H{"errors": []gin.H{{
 			"status": "400",
 			"title":  "Token Expired",
@@ -77,7 +77,7 @@ func ResetPassword(context *gin.Context) {
 		return
 	}
 
-	user, err := models.GetUserByEmail(pr.Email)
+	user, err := providers.GetUserByEmail(pr.Email)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"errors": []gin.H{{
 			"status": "400",
@@ -97,8 +97,8 @@ func ResetPassword(context *gin.Context) {
 		return
 	}
 
-	update := structs.UpdateUserStruct{ID: user.ID, Password: string(hashedPassword)}
-	err = models.UpdateUser(update)
+	update := models.UserStruct{ID: user.ID, Password: string(hashedPassword)}
+	err = providers.UpdateUser(update)
 
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"errors": []gin.H{{
@@ -109,6 +109,6 @@ func ResetPassword(context *gin.Context) {
 		return
 	}
 
-	_ = models.DeletePasswordReset(req.Token)
+	_ = providers.DeletePasswordReset(req.Token)
 	context.JSON(http.StatusOK, gin.H{"message": "Contraseña restablecida"})
 }

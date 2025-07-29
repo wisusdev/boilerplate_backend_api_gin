@@ -2,7 +2,7 @@ package auth
 
 import (
 	"net/http"
-	"semita/app/data/models"
+	"semita/app/data/providers"
 	"semita/app/http/requests"
 	"semita/app/http/resources"
 	"semita/core/oauth/oauth_models"
@@ -19,7 +19,7 @@ func Login(context *gin.Context) {
 		return
 	}
 
-	storedUser, err := models.GetUserByEmail(request.Data.Attributes.Email)
+	storedUser, err := providers.GetUserByEmail(request.Data.Attributes.Email)
 	if err != nil {
 		context.JSON(http.StatusUnauthorized, gin.H{"errors": []gin.H{{
 			"status": "401",
