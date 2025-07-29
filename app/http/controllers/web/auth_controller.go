@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"semita/app/data/models"
-	"semita/app/data/structs"
+	"semita/app/data/providers"
 	"semita/app/notifications"
 	"semita/config"
 	"semita/core/helpers"
@@ -31,12 +31,12 @@ func AuthLoginPost(context *gin.Context) {
 		return
 	}
 
-	user := structs.LoginUserStruct{
+	user := models.UserStruct{
 		Email:    email,
 		Password: password,
 	}
 
-	storedUser, err := models.GetUserByEmail(user.Email)
+	storedUser, err := providers.GetUserByEmail(user.Email)
 	if err != nil {
 		helpers.Logs("ERROR", fmt.Sprintf("Error retrieving user: %v", err))
 		helpers.CreateFlashNotification(context.Writer, context.Request, "warning", "Invalid email or password")
@@ -135,7 +135,7 @@ func AuthRegisterPost(context *gin.Context) {
 		return
 	}
 
-	user := structs.StoreUserStruct{
+	user := models.UserStruct{
 		FirstName: firstName,
 		LastName:  lastName,
 		Username:  username,
@@ -143,7 +143,7 @@ func AuthRegisterPost(context *gin.Context) {
 		Password:  string(hashedPassword),
 	}
 
-	userStore, errorStore := models.StoreUser(user)
+	userStore, errorStore := providers.StoreUser(user)
 	if errorStore != nil {
 		helpers.Logs("ERROR", fmt.Sprintf("Error saving user: %v", errorStore))
 		helpers.CreateFlashNotification(context.Writer, context.Request, "warning", "Lo siento, hubo un error al guardar el usuario")
@@ -188,7 +188,7 @@ func AuthForgotPasswordPost(context *gin.Context) {
 
 	token := helpers.GenerateResetToken(email)
 	resetURL := "http://" + config.AppConfig().Url + "/auth/reset-password?token=" + token
-	_ = models.CreatePasswordReset(email, token) // Guardar token en BD
+	_ = providers.CreatePasswordReset(email, token) // Guardar token en BD
 	errorSendEmail := notifications.SendPasswordReset(email, resetURL)
 
 	if errorSendEmail != nil {
@@ -232,7 +232,7 @@ func AuthResetPasswordPost(context *gin.Context) {
 		return
 	}
 
-	passwordResetByToken, err := models.GetPasswordResetByToken(token)
+	passwordResetByToken, err := providers.GetPasswordResetByToken(token)
 	if err != nil {
 		helpers.Logs("ERROR", err.Error())
 		helpers.CreateFlashNotification(context.Writer, context.Request, "warning", "Token inválido o expirado")
@@ -248,7 +248,7 @@ func AuthResetPasswordPost(context *gin.Context) {
 
 	// Verificar expiración de 2 horas
 	if timeSince > 2*time.Hour {
-		_ = models.DeletePasswordReset(token)
+		_ = providers.DeletePasswordReset(token)
 		helpers.Logs("INFO", fmt.Sprintf("Token expirado. Creado hace: %v", timeSince))
 		helpers.CreateFlashNotification(context.Writer, context.Request, "warning", "Token expirado. Por favor, solicita un nuevo enlace de restablecimiento.")
 		context.Redirect(http.StatusSeeOther, "/auth/forgot-password")
@@ -256,7 +256,7 @@ func AuthResetPasswordPost(context *gin.Context) {
 		return
 	}
 
-	user, err := models.GetUserByEmail(passwordResetByToken.Email)
+	user, err := providers.GetUserByEmail(passwordResetByToken.Email)
 	if err != nil {
 		helpers.Logs("ERROR", fmt.Sprintf("Usuario no encontrado: %v", err))
 		helpers.CreateFlashNotification(context.Writer, context.Request, "warning", "Usuario no encontrado")
@@ -274,8 +274,15 @@ func AuthResetPasswordPost(context *gin.Context) {
 		return
 	}
 
-	update := structs.UpdateUserStruct{ID: user.ID, Name: user.FirstName + " " + user.LastName, Email: user.Email, Password: string(hashedPassword)}
-	err = models.UpdateUser(update)
+	update := models.UserStruct{
+		ID:        user.ID,
+		FirstName: user.FirstName,
+		LastName:  user.LastName,
+		Username:  user.Username,
+		Email:     user.Email,
+		Password:  string(hashedPassword),
+	}
+	err = providers.UpdateUser(update)
 
 	if err != nil {
 		helpers.Logs("ERROR", fmt.Sprintf("No se pudo actualizar la contraseña: %v", err))
@@ -286,7 +293,7 @@ func AuthResetPasswordPost(context *gin.Context) {
 	}
 
 	// Eliminar el token después de usarlo exitosamente
-	_ = models.DeletePasswordReset(token)
+	_ = providers.DeletePasswordReset(token)
 	helpers.Logs("INFO", "Contraseña restablecida exitosamente")
 
 	helpers.CreateFlashNotification(context.Writer, context.Request, "success", "Contraseña actualizada exitosamente!")
@@ -305,7 +312,7 @@ func AuthVerifyEmail(context *gin.Context) {
 		return
 	}
 
-	user, err := models.GetUserByID(id)
+	user, err := providers.GetUserByID(id)
 	if err != nil {
 		helpers.Logs("ERROR", fmt.Sprintf("User not found: %v", err))
 		helpers.CreateFlashNotification(context.Writer, context.Request, "warning", "User not found")
@@ -321,7 +328,7 @@ func AuthVerifyEmail(context *gin.Context) {
 		return
 	}
 
-	err = models.MarkEmailVerified(user.ID)
+	err = providers.MarkEmailVerified(user.ID)
 	if err != nil {
 		helpers.Logs("ERROR", fmt.Sprintf("Error marking email as verified: %v", err))
 		helpers.CreateFlashNotification(context.Writer, context.Request, "error", "Error marking email as verified")
@@ -345,7 +352,7 @@ func AuthResendVerification(context *gin.Context) {
 		return
 	}
 
-	user, err := models.GetUserByEmail(email)
+	user, err := providers.GetUserByEmail(email)
 	if err != nil || user.EmailVerifiedAt != nil {
 		helpers.CreateFlashNotification(context.Writer, context.Request, "warning", "Usuario no encontrado o ya verificado")
 		context.Redirect(http.StatusSeeOther, "/auth/login")

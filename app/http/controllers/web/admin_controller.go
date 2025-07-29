@@ -2,10 +2,10 @@ package web
 
 import (
 	"net/http"
-	"semita/app/data/models"
+	"semita/app/data/providers"
 	"semita/core/helpers"
-	rolesAndPermissionsModels "semita/core/roles_and_permissions/models"
-	"semita/core/roles_and_permissions/structs"
+	"semita/core/roles_and_permissions/models"
+	rolesAndPermissionsModels "semita/core/roles_and_permissions/providers"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -54,7 +54,7 @@ func (ac *AdminController) UsersIndex(c *gin.Context) {
 		return
 	}
 
-	users, err := models.GetAllUsers()
+	users, err := providers.GetAllUsers()
 	if err != nil {
 		helpers.CreateFlashNotification(c.Writer, c.Request, "error", "Error al obtener usuarios: "+err.Error())
 		c.Redirect(http.StatusSeeOther, "/admin")
@@ -83,7 +83,7 @@ func (ac *AdminController) UserShow(context *gin.Context) {
 
 	userID := context.Param("id")
 	userIDInt, _ := strconv.Atoi(userID)
-	user, err := models.GetUserByID(userID)
+	user, err := providers.GetUserByID(userID)
 	if err != nil {
 		helpers.CreateFlashNotification(context.Writer, context.Request, "error", "Usuario no encontrado.")
 		context.Redirect(http.StatusSeeOther, "/admin/users")
@@ -115,13 +115,13 @@ func (ac *AdminController) UserShow(context *gin.Context) {
 	// Obtener todos los roles disponibles para asignación
 	availableRoles, err := rolesAndPermissionsModels.GetAllRoles()
 	if err != nil {
-		availableRoles = []structs.RoleStruct{}
+		availableRoles = []models.RoleStruct{}
 	}
 
 	// Obtener todos los permisos disponibles para asignación directa
 	availablePermissions, err := rolesAndPermissionsModels.GetAllPermissions()
 	if err != nil {
-		availablePermissions = []structs.PermissionStruct{}
+		availablePermissions = []models.PermissionStruct{}
 	}
 
 	data := gin.H{
