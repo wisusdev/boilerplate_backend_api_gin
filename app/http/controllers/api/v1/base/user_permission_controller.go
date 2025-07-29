@@ -3,10 +3,10 @@ package base
 import (
 	"net/http"
 	"semita/app/data/models"
-	"semita/app/data/structs"
+	"semita/app/data/providers"
 	"semita/core/helpers"
-	rolesAndPermissionsModels "semita/core/roles_and_permissions/models"
-	rolesAndPermissionsStructs "semita/core/roles_and_permissions/structs"
+	rolesAndPermissionsStructs "semita/core/roles_and_permissions/models"
+	rolesAndPermissionsModels "semita/core/roles_and_permissions/providers"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -58,7 +58,7 @@ func (upc *UserPermissionController) CheckUserPermissions(c *gin.Context) {
 	}
 
 	// Obtener información del usuario
-	user, err := models.GetUserByID(strconv.Itoa(userID))
+	user, err := providers.GetUserByID(strconv.Itoa(userID))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"status":  "error",
@@ -124,7 +124,7 @@ func (upc *UserPermissionController) CheckCurrentUserPermissions(c *gin.Context)
 		return
 	}
 
-	var userData = structs.UserStruct{
+	var userData = models.UserStruct{
 		ID:        user.ID,
 		FirstName: user.FirstName,
 		LastName:  user.LastName,

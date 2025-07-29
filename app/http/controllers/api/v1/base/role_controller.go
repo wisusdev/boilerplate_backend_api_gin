@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"semita/core/helpers"
 	"semita/core/roles_and_permissions/models"
+	"semita/core/roles_and_permissions/providers"
 	"semita/core/roles_and_permissions/repositories"
-	"semita/core/roles_and_permissions/structs"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -16,7 +16,7 @@ type RoleController struct{}
 
 // Index muestra todos los roles
 func (rc *RoleController) Index(c *gin.Context) {
-	roles, err := models.GetAllRoles()
+	roles, err := providers.GetAllRoles()
 	if err != nil {
 		helpers.CreateFlashNotification(c.Writer, c.Request, "error", "Error retrieving roles: "+err.Error())
 		c.Redirect(http.StatusSeeOther, "/")
@@ -41,7 +41,7 @@ func (rc *RoleController) Show(c *gin.Context) {
 		return
 	}
 
-	role, err := models.GetRoleByID(id)
+	role, err := providers.GetRoleByID(id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"status":  "error",
@@ -50,7 +50,7 @@ func (rc *RoleController) Show(c *gin.Context) {
 		return
 	}
 
-	permissions, err := models.GetRolePermissions(id)
+	permissions, err := providers.GetRolePermissions(id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "error",
@@ -59,7 +59,7 @@ func (rc *RoleController) Show(c *gin.Context) {
 		return
 	}
 
-	roleWithPermissions := structs.RoleWithPermissions{
+	roleWithPermissions := models.RoleWithPermissions{
 		RoleStruct:  *role,
 		Permissions: permissions,
 	}
@@ -72,7 +72,7 @@ func (rc *RoleController) Show(c *gin.Context) {
 
 // Store crea un nuevo rol
 func (rc *RoleController) Store(c *gin.Context) {
-	var roleData structs.CreateRoleStruct
+	var roleData models.CreateRoleStruct
 	if err := c.ShouldBindJSON(&roleData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
@@ -82,7 +82,7 @@ func (rc *RoleController) Store(c *gin.Context) {
 		return
 	}
 
-	role, err := models.CreateRole(roleData)
+	role, err := providers.CreateRole(roleData)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "error",
@@ -110,7 +110,7 @@ func (rc *RoleController) Update(c *gin.Context) {
 		return
 	}
 
-	var roleData structs.CreateRoleStruct
+	var roleData models.CreateRoleStruct
 	if err := c.ShouldBindJSON(&roleData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
@@ -148,7 +148,7 @@ func (rc *RoleController) Delete(c *gin.Context) {
 		return
 	}
 
-	err = models.DeleteRole(id)
+	err = providers.DeleteRole(id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "error",
@@ -165,7 +165,7 @@ func (rc *RoleController) Delete(c *gin.Context) {
 
 // AssignToUser asigna un rol a un usuario
 func (rc *RoleController) AssignToUser(c *gin.Context) {
-	var request structs.AssignRoleRequest
+	var request models.AssignRoleRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
@@ -175,7 +175,7 @@ func (rc *RoleController) AssignToUser(c *gin.Context) {
 		return
 	}
 
-	err := models.AssignRoleToUser(request.UserID, request.RoleID)
+	err := providers.AssignRoleToUser(request.UserID, request.RoleID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "error",
@@ -192,7 +192,7 @@ func (rc *RoleController) AssignToUser(c *gin.Context) {
 
 // RevokeFromUser revoca un rol de un usuario
 func (rc *RoleController) RevokeFromUser(c *gin.Context) {
-	var request structs.AssignRoleRequest
+	var request models.AssignRoleRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
@@ -202,7 +202,7 @@ func (rc *RoleController) RevokeFromUser(c *gin.Context) {
 		return
 	}
 
-	err := models.RevokeRoleFromUser(request.UserID, request.RoleID)
+	err := providers.RevokeRoleFromUser(request.UserID, request.RoleID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "error",
@@ -229,7 +229,7 @@ func (rc *RoleController) GetUserRoles(c *gin.Context) {
 		return
 	}
 
-	roles, err := models.GetUserRoles(userID)
+	roles, err := providers.GetUserRoles(userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "error",

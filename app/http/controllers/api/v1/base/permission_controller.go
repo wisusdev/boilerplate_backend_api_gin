@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"semita/core/helpers"
 	"semita/core/roles_and_permissions/models"
-	"semita/core/roles_and_permissions/structs"
+	"semita/core/roles_and_permissions/providers"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -15,7 +15,7 @@ type PermissionController struct{}
 
 // Index muestra todos los permisos
 func (pc *PermissionController) Index(c *gin.Context) {
-	permissions, err := models.GetAllPermissions()
+	permissions, err := providers.GetAllPermissions()
 	if err != nil {
 		helpers.CreateFlashNotification(c.Writer, c.Request, "error", "Error retrieving permissions: "+err.Error())
 		c.Redirect(http.StatusSeeOther, "/")
@@ -40,7 +40,7 @@ func (pc *PermissionController) Show(c *gin.Context) {
 		return
 	}
 
-	permission, err := models.GetPermissionByID(id)
+	permission, err := providers.GetPermissionByID(id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"status":  "error",
@@ -57,7 +57,7 @@ func (pc *PermissionController) Show(c *gin.Context) {
 
 // Store crea un nuevo permiso
 func (pc *PermissionController) Store(c *gin.Context) {
-	var permissionData structs.CreatePermissionStruct
+	var permissionData models.CreatePermissionStruct
 	if err := c.ShouldBindJSON(&permissionData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
@@ -67,7 +67,7 @@ func (pc *PermissionController) Store(c *gin.Context) {
 		return
 	}
 
-	permission, err := models.CreatePermission(permissionData)
+	permission, err := providers.CreatePermission(permissionData)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "error",
@@ -95,7 +95,7 @@ func (pc *PermissionController) Update(c *gin.Context) {
 		return
 	}
 
-	var permissionData structs.CreatePermissionStruct
+	var permissionData models.CreatePermissionStruct
 	if err := c.ShouldBindJSON(&permissionData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
@@ -105,7 +105,7 @@ func (pc *PermissionController) Update(c *gin.Context) {
 		return
 	}
 
-	permission, err := models.UpdatePermission(id, permissionData)
+	permission, err := providers.UpdatePermission(id, permissionData)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "error",
@@ -133,7 +133,7 @@ func (pc *PermissionController) Delete(c *gin.Context) {
 		return
 	}
 
-	err = models.DeletePermission(id)
+	err = providers.DeletePermission(id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "error",
@@ -150,7 +150,7 @@ func (pc *PermissionController) Delete(c *gin.Context) {
 
 // AssignToUser asigna un permiso directamente a un usuario
 func (pc *PermissionController) AssignToUser(c *gin.Context) {
-	var request structs.AssignPermissionRequest
+	var request models.AssignPermissionRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
@@ -168,7 +168,7 @@ func (pc *PermissionController) AssignToUser(c *gin.Context) {
 		return
 	}
 
-	err := models.AssignPermissionToUser(request.UserID, request.PermissionID)
+	err := providers.AssignPermissionToUser(request.UserID, request.PermissionID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "error",
@@ -185,7 +185,7 @@ func (pc *PermissionController) AssignToUser(c *gin.Context) {
 
 // AssignToRole asigna un permiso a un rol
 func (pc *PermissionController) AssignToRole(c *gin.Context) {
-	var request structs.AssignPermissionRequest
+	var request models.AssignPermissionRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
@@ -203,7 +203,7 @@ func (pc *PermissionController) AssignToRole(c *gin.Context) {
 		return
 	}
 
-	err := models.AssignPermissionToRole(request.RoleID, request.PermissionID)
+	err := providers.AssignPermissionToRole(request.RoleID, request.PermissionID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "error",
@@ -220,7 +220,7 @@ func (pc *PermissionController) AssignToRole(c *gin.Context) {
 
 // RevokeFromUser revoca un permiso directo de un usuario
 func (pc *PermissionController) RevokeFromUser(c *gin.Context) {
-	var request structs.AssignPermissionRequest
+	var request models.AssignPermissionRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
@@ -238,7 +238,7 @@ func (pc *PermissionController) RevokeFromUser(c *gin.Context) {
 		return
 	}
 
-	err := models.RevokePermissionFromUser(request.UserID, request.PermissionID)
+	err := providers.RevokePermissionFromUser(request.UserID, request.PermissionID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "error",
@@ -255,7 +255,7 @@ func (pc *PermissionController) RevokeFromUser(c *gin.Context) {
 
 // RevokeFromRole revoca un permiso de un rol
 func (pc *PermissionController) RevokeFromRole(c *gin.Context) {
-	var request structs.AssignPermissionRequest
+	var request models.AssignPermissionRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
@@ -273,7 +273,7 @@ func (pc *PermissionController) RevokeFromRole(c *gin.Context) {
 		return
 	}
 
-	err := models.RevokePermissionFromRole(request.RoleID, request.PermissionID)
+	err := providers.RevokePermissionFromRole(request.RoleID, request.PermissionID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "error",
@@ -300,7 +300,7 @@ func (pc *PermissionController) GetUserPermissions(c *gin.Context) {
 		return
 	}
 
-	directPermissions, err := models.GetUserDirectPermissions(userID)
+	directPermissions, err := providers.GetUserDirectPermissions(userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "error",
@@ -309,7 +309,7 @@ func (pc *PermissionController) GetUserPermissions(c *gin.Context) {
 		return
 	}
 
-	allPermissions, err := models.GetUserAllPermissions(userID)
+	allPermissions, err := providers.GetUserAllPermissions(userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "error",
@@ -339,7 +339,7 @@ func (pc *PermissionController) GetRolePermissions(c *gin.Context) {
 		return
 	}
 
-	permissions, err := models.GetRolePermissions(roleID)
+	permissions, err := providers.GetRolePermissions(roleID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "error",
