@@ -69,7 +69,7 @@ func AuthLoginPost(context *gin.Context) {
 		FirstName: storedUser.FirstName,
 		LastName:  storedUser.LastName,
 		Username:  storedUser.Username,
-		Avatar:    helpers.StringToNullString(storedUser.Avatar),
+		Avatar:    storedUser.Avatar,
 		Language:  helpers.StringToNullString(storedUser.Language),
 		Email:     storedUser.Email,
 	}
