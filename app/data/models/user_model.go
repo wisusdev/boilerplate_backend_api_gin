@@ -19,3 +19,7 @@ type UserStruct struct {
 }
 
 type Users []UserStruct
+
+func (user UserStruct) TableName() string {
+	return "users"
+}
