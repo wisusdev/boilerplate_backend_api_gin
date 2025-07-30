@@ -8,14 +8,13 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-
-	"github.com/spf13/cobra"
+	"semita/core/cli"
 )
 
-var OauthKeysCmd = &cobra.Command{
-	Use:   "oauth:keys",
-	Short: "Genera las llaves oauth-private.key y oauth-public.key en el directorio storage",
-	Run: func(cmd *cobra.Command, args []string) {
+var OauthKeysCmd = cli.Command{
+	Name:        "oauth:keys",
+	Description: "Genera las llaves oauth-private.key y oauth-public.key en el directorio storage",
+	Execute: func(args []string) {
 		storageDir := "storage/oauth"
 		privateKeyPath := filepath.Join(storageDir, "oauth-private.key")
 		publicKeyPath := filepath.Join(storageDir, "oauth-public.key")

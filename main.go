@@ -23,8 +23,8 @@ func main() {
 		StartServer()
 		return
 	} else if len(os.Args) > 1 {
-		// Si hay argumentos, ejecuta los comandos de Cobra
-		bootstrap.Execute() // Ejecutar comandos de Cobra cuando hay argumentos
+		args := os.Args[1:]
+		bootstrap.Execute(args) // Ejecutar comandos de Cobra cuando hay argumentos
 	}
 
 }

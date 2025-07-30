@@ -3,15 +3,14 @@ package commands
 import (
 	"crypto/rand"
 	"encoding/base64"
+	"semita/core/cli"
 	"semita/core/helpers"
-
-	"github.com/spf13/cobra"
 )
 
-var KeyGenerateCmd = &cobra.Command{
-	Use:   "key:generate",
-	Short: "Genera una nueva clave JWT y la guarda en el archivo .env",
-	Run: func(cmd *cobra.Command, args []string) {
+var KeyGenerateCmd = cli.Command{
+	Name:        "key:generate",
+	Description: "Genera una nueva clave JWT y la guarda en el archivo .env",
+	Execute: func(args []string) {
 		key := generateRandomKey(32)
 
 		// Intenta actualizar el archivo .env

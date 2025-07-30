@@ -5,19 +5,18 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"semita/core/cli"
 	"semita/core/database/generate_migrations"
 	"semita/database/migrations"
 	"strings"
 	"text/template"
 	"time"
-
-	"github.com/spf13/cobra"
 )
 
-var MigrateCmd = &cobra.Command{
-	Use:   "migrate",
-	Short: "Ejecuta las migraciones de base de datos",
-	Run: func(cmd *cobra.Command, args []string) {
+var MigrateCmd = cli.Command{
+	Name:        "migrate",
+	Description: "Ejecuta las migraciones de base de datos",
+	Execute: func(args []string) {
 		migrations.WithMigrator(func(migrator *generate_migrations.Migrator) {
 			if err := migrator.Migrate(); err != nil {
 				log.Fatal("Error running database:", err)
@@ -27,10 +26,10 @@ var MigrateCmd = &cobra.Command{
 	},
 }
 
-var MigrateFreshCmd = &cobra.Command{
-	Use:   "migrate:fresh",
-	Short: "Elimina y vuelve a crear todas las tablas",
-	Run: func(cmd *cobra.Command, args []string) {
+var MigrateFreshCmd = cli.Command{
+	Name:        "migrate:fresh",
+	Description: "Elimina y vuelve a crear todas las tablas",
+	Execute: func(args []string) {
 		migrations.WithMigrator(func(migrator *generate_migrations.Migrator) {
 			if err := migrator.Fresh(); err != nil {
 				log.Fatal("Error refreshing database:", err)
@@ -39,10 +38,10 @@ var MigrateFreshCmd = &cobra.Command{
 	},
 }
 
-var MigrateRollbackCmd = &cobra.Command{
-	Use:   "migrate:rollback",
-	Short: "Revierte la última migración",
-	Run: func(cmd *cobra.Command, args []string) {
+var MigrateRollbackCmd = cli.Command{
+	Name:        "migrate:rollback",
+	Description: "Revierte la última migración",
+	Execute: func(args []string) {
 		migrations.WithMigrator(func(migrator *generate_migrations.Migrator) {
 			if err := migrator.Rollback(); err != nil {
 				log.Fatal("Error rolling back database:", err)
@@ -52,21 +51,14 @@ var MigrateRollbackCmd = &cobra.Command{
 	},
 }
 
-var MakeMigrationCmd = &cobra.Command{
-	Use:   "make:migration",
-	Short: "Crea un archivo de migración nuevo",
-	Args:  cobra.ExactArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
+var MakeMigrationCmd = cli.Command{
+	Name:        "make:migration",
+	Description: "Crea un archivo de migración nuevo",
+	Execute: func(args []string) {
 		name := args[0]
 		createMigrationFile(name)
 		fmt.Println("Migration file created successfully!")
 	},
-}
-
-func init() {
-	MigrateCmd.AddCommand(MigrateFreshCmd)
-	MigrateCmd.AddCommand(MigrateRollbackCmd)
-	MigrateCmd.AddCommand(MakeMigrationCmd)
 }
 
 // Copia la función createMigrationFile, toPascalCase y getTableName aquí desde tu código actual

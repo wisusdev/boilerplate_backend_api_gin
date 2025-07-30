@@ -5,15 +5,14 @@ import (
 	"encoding/hex"
 	"fmt"
 	"os"
+	"semita/core/cli"
 	"semita/core/oauth/oauth_models"
-
-	"github.com/spf13/cobra"
 )
 
-var OauthClientCmd = &cobra.Command{
-	Use:   "oauth:client",
-	Short: "Crea un cliente OAuth en la base de datos",
-	Run: func(cmd *cobra.Command, args []string) {
+var OauthClientCmd = cli.Command{
+	Name:        "oauth:client",
+	Description: "Crea un cliente OAuth en la base de datos",
+	Execute: func(args []string) {
 		name := "Default Client"
 		if len(args) > 0 {
 			name = args[0]
