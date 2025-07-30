@@ -21,7 +21,7 @@ func getStore() *sessions.CookieStore {
 }
 
 func GetFlashNotifications(response http.ResponseWriter, request *http.Request) (string, string) {
-	var session, _ = getStore().Get(request, "flash-core_session")
+	var session, _ = getStore().Get(request, "flash_core_session")
 
 	var alertId = ""
 	var alertMensaje = ""
@@ -42,7 +42,7 @@ func GetFlashNotifications(response http.ResponseWriter, request *http.Request) 
 }
 
 func CreateFlashNotification(response http.ResponseWriter, request *http.Request, alertID string, alertMessage string) {
-	var session, err = getStore().Get(request, "flash-core_session")
+	var session, err = getStore().Get(request, "flash_core_session")
 
 	if err != nil {
 		Logs("ERROR", err.Error())

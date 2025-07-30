@@ -74,7 +74,7 @@ func AuthLoginPost(context *gin.Context) {
 		Email:     storedUser.Email,
 	}
 
-	sessionLoginError := helpers.LoginUserSession(context.Writer, context.Request, userData)
+	sessionLoginError := helpers.LoginUserSession(context, userData)
 	if sessionLoginError != nil {
 		helpers.Logs("ERROR", fmt.Sprintf("Error creating user core_session: %v", sessionLoginError))
 		helpers.CreateFlashNotification(context.Writer, context.Request, "error", "Error creating user core_session")

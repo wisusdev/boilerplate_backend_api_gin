@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"github.com/gin-gonic/gin"
 	"net/http"
 	"semita/config"
 	"semita/core/common/nulltypes"
@@ -85,10 +86,10 @@ func GetSessionStore() *sessions.CookieStore {
 	return sessionStore
 }
 
-func LoginUserSession(response http.ResponseWriter, request *http.Request, user UserSessionStruct) error {
-	var session, sessionError = GetSessionStore().Get(request, "user-core_session")
+func LoginUserSession(context *gin.Context, user UserSessionStruct) error {
+	var session, sessionError = GetSessionStore().Get(context.Request, "user-core_session")
 	if sessionError != nil {
-		http.Error(response, "Error al crear la sesión", http.StatusInternalServerError)
+		http.Error(context.Writer, "Error al crear la sesión", http.StatusInternalServerError)
 		return sessionError
 	}
 
@@ -108,7 +109,7 @@ func LoginUserSession(response http.ResponseWriter, request *http.Request, user 
 		Secure:   false, // Set to true if using HTTPS
 	}
 
-	return session.Save(request, response)
+	return session.Save(context.Request, context.Writer)
 }
 
 func GetAuthenticatedUser(request *http.Request) (UserSessionStruct, bool) {
