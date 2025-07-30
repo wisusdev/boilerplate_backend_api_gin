@@ -4,6 +4,7 @@ import (
 	"semita/app/data/models"
 	"semita/core/common/nulltypes"
 	"semita/core/database/database_connections"
+	"semita/core/database/orm"
 	"semita/core/helpers"
 	"strconv"
 	"time"
@@ -12,7 +13,13 @@ import (
 var userTable = "users"
 
 type UserRepository struct {
-	DB database_connections.SQLAdapter
+	*orm.ModelRepository
+}
+
+func NewUserRepository() *UserRepository {
+	return &UserRepository{
+		ModelRepository: orm.NewModelRepository(&models.UserStruct{}),
+	}
 }
 
 // parseDateTime convierte una fecha string a time.Time
@@ -57,13 +64,7 @@ func scanUserRow(scanner interface {
 		&avatarPtr, &user.Language, &user.Email, &emailVerifiedAtStr, &user.Password,
 		&createdAtStr, &updatedAtStr,
 	)
-
-	if avatarPtr != nil {
-		user.Avatar = *avatarPtr
-	} else {
-		user.Avatar = ""
-	}
-
+	
 	if err != nil {
 		return models.UserStruct{}, err
 	}
@@ -100,33 +101,12 @@ func (r *UserRepository) Where(field string, value interface{}) ([]models.UserSt
 	return users, nil
 }
 
-func GetAllUsers() ([]models.UserStruct, error) {
-	// Instanciamos la conexión a la base de datos
-	var database = database_connections.DatabaseConnectSQL()
+func (r *UserRepository) GetAllUsers() ([]models.UserStruct, error) {
+	var users models.Users
 
-	// Aseguramos que la conexión se cierre al final de la función
-	defer database.Close()
-
-	// Preparamos la consulta para obtener todos los usuarios
-	var query = "SELECT id, first_name, last_name, username, avatar, language, email, email_verified_at, password, created_at, updated_at FROM " + userTable
-
-	// Ejecutamos la consulta y obtenemos los resultados
-	rows, err := database.Query(query)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	// Creamos un slice para almacenar los usuarios
-	var users []models.UserStruct
-
-	// Iteramos sobre los resultados y los agregamos al slice
-	for rows.Next() {
-		user, err := scanUserRow(rows)
-		if err != nil {
-			return nil, err
-		}
-		users = append(users, user)
+	errorGetAll := r.GetAll(&users)
+	if errorGetAll != nil {
+		return nil, errorGetAll
 	}
 
 	return users, nil
