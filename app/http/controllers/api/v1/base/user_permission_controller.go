@@ -129,7 +129,7 @@ func (upc *UserPermissionController) CheckCurrentUserPermissions(c *gin.Context)
 		FirstName: user.FirstName,
 		LastName:  user.LastName,
 		Username:  user.Username,
-		Avatar:    helpers.NullStringToString(user.Avatar),
+		Avatar:    user.Avatar,
 		Language:  helpers.NullStringToString(user.Language),
 	}
 
