@@ -1,12 +1,13 @@
 package helpers
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"semita/config"
 	"semita/core/common/nulltypes"
 	"semita/core/internationalization"
 	"sync"
+
+	"github.com/gin-gonic/gin"
 
 	"github.com/gorilla/sessions"
 )
@@ -28,7 +29,7 @@ func NullStringToString(ns nulltypes.NullString) string {
 }
 
 type UserSessionStruct struct {
-	ID            int
+	ID            string
 	FirstName     string
 	LastName      string
 	Username      string
@@ -124,7 +125,7 @@ func GetAuthenticatedUser(request *http.Request) (UserSessionStruct, bool) {
 	}
 
 	// Validar que todos los valores necesarios existan y sean del tipo correcto
-	userID, ok := session.Values["user_id"].(int)
+	userID, ok := session.Values["user_id"].(string)
 	if !ok {
 		return UserSessionStruct{}, false
 	}

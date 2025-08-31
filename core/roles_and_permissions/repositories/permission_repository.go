@@ -2,7 +2,6 @@ package repositories
 
 import (
 	"fmt"
-	"semita/core/common/nulltypes"
 	"semita/core/database/database_connections"
 	"semita/core/roles_and_permissions/models"
 	"strings"
@@ -16,7 +15,7 @@ func GetAllPermissions() ([]models.PermissionStruct, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
-	query := `SELECT id, name, guard_name, description, created_at, updated_at FROM ` + permissionsTable + ` ORDER BY name`
+	query := `SELECT uuid, name, guard_name, created_at, updated_at FROM ` + permissionsTable + ` ORDER BY name`
 	rows, err := database.Query(query)
 	if err != nil {
 		return nil, err
@@ -26,12 +25,10 @@ func GetAllPermissions() ([]models.PermissionStruct, error) {
 	var permissions []models.PermissionStruct
 	for rows.Next() {
 		var permission models.PermissionStruct
-		var description nulltypes.NullString
-		err = rows.Scan(&permission.ID, &permission.Name, &permission.GuardName, &description, &permission.CreatedAt, &permission.UpdatedAt)
+		err = rows.Scan(&permission.ID, &permission.Name, &permission.GuardName, &permission.CreatedAt, &permission.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
-		permission.Description = description.String
 		permissions = append(permissions, permission)
 	}
 
@@ -42,16 +39,14 @@ func GetPermissionByID(id int) (*models.PermissionStruct, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
-	query := `SELECT id, name, guard_name, description, created_at, updated_at FROM ` + permissionsTable + ` WHERE id = ?`
+	query := `SELECT id, name, guard_name, created_at, updated_at FROM ` + permissionsTable + ` WHERE id = ?`
 	row := database.QueryRow(query, id)
 
 	var permission models.PermissionStruct
-	var description nulltypes.NullString
-	err := row.Scan(&permission.ID, &permission.Name, &permission.GuardName, &description, &permission.CreatedAt, &permission.UpdatedAt)
+	err := row.Scan(&permission.ID, &permission.Name, &permission.GuardName, &permission.CreatedAt, &permission.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}
-	permission.Description = description.String
 
 	return &permission, nil
 }
@@ -60,16 +55,14 @@ func GetPermissionByName(name string, guardName string) (*models.PermissionStruc
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
-	query := `SELECT id, name, guard_name, description, created_at, updated_at FROM ` + permissionsTable + ` WHERE name = ? AND guard_name = ?`
+	query := `SELECT id, name, guard_name, created_at, updated_at FROM ` + permissionsTable + ` WHERE name = ? AND guard_name = ?`
 	row := database.QueryRow(query, name, guardName)
 
 	var permission models.PermissionStruct
-	var description nulltypes.NullString
-	err := row.Scan(&permission.ID, &permission.Name, &permission.GuardName, &description, &permission.CreatedAt, &permission.UpdatedAt)
+	err := row.Scan(&permission.ID, &permission.Name, &permission.GuardName, &permission.CreatedAt, &permission.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}
-	permission.Description = description.String
 
 	return &permission, nil
 }
@@ -82,8 +75,8 @@ func CreatePermission(permissionData models.CreatePermissionStruct) (*models.Per
 		permissionData.GuardName = "web"
 	}
 
-	query := `INSERT INTO ` + permissionsTable + ` (name, guard_name, description) VALUES (?, ?, ?)`
-	result, err := database.Exec(query, permissionData.Name, permissionData.GuardName, permissionData.Description)
+	query := `INSERT INTO ` + permissionsTable + ` (name, guard_name) VALUES (?, ?, ?)`
+	result, err := database.Exec(query, permissionData.Name, permissionData.GuardName)
 	if err != nil {
 		return nil, err
 	}
@@ -100,8 +93,8 @@ func UpdatePermission(id int, permissionData models.CreatePermissionStruct) (*mo
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
-	query := `UPDATE ` + permissionsTable + ` SET name = ?, description = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`
-	_, err := database.Exec(query, permissionData.Name, permissionData.Description, id)
+	query := `UPDATE ` + permissionsTable + ` SET name = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`
+	_, err := database.Exec(query, permissionData.Name, id)
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +116,7 @@ func GetRolePermissions(roleID int) ([]models.PermissionStruct, error) {
 	defer database.Close()
 
 	query := `
-		SELECT p.id, p.name, p.guard_name, p.description, p.created_at, p.updated_at 
+		SELECT p.id, p.name, p.guard_name, p.created_at, p.updated_at 
 		FROM ` + permissionsTable + ` p
 		INNER JOIN ` + rolePermissionsTable + ` rp ON p.id = rp.permission_id
 		WHERE rp.role_id = ?
@@ -138,24 +131,22 @@ func GetRolePermissions(roleID int) ([]models.PermissionStruct, error) {
 	var permissions []models.PermissionStruct
 	for rows.Next() {
 		var permission models.PermissionStruct
-		var description nulltypes.NullString
-		err = rows.Scan(&permission.ID, &permission.Name, &permission.GuardName, &description, &permission.CreatedAt, &permission.UpdatedAt)
+		err = rows.Scan(&permission.ID, &permission.Name, &permission.GuardName, &permission.CreatedAt, &permission.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
-		permission.Description = description.String
 		permissions = append(permissions, permission)
 	}
 
 	return permissions, nil
 }
 
-func GetUserDirectPermissions(userID int) ([]models.PermissionStruct, error) {
+func GetUserDirectPermissions(userID string) ([]models.PermissionStruct, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
 	query := `
-		SELECT p.id, p.name, p.guard_name, p.description, p.created_at, p.updated_at 
+		SELECT p.id, p.name, p.guard_name, p.created_at, p.updated_at 
 		FROM ` + permissionsTable + ` p
 		INNER JOIN ` + userPermissionsTable + ` up ON p.id = up.permission_id
 		WHERE up.user_id = ?
@@ -170,32 +161,30 @@ func GetUserDirectPermissions(userID int) ([]models.PermissionStruct, error) {
 	var permissions []models.PermissionStruct
 	for rows.Next() {
 		var permission models.PermissionStruct
-		var description nulltypes.NullString
-		err = rows.Scan(&permission.ID, &permission.Name, &permission.GuardName, &description, &permission.CreatedAt, &permission.UpdatedAt)
+		err = rows.Scan(&permission.ID, &permission.Name, &permission.GuardName, &permission.CreatedAt, &permission.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
-		permission.Description = description.String
 		permissions = append(permissions, permission)
 	}
 
 	return permissions, nil
 }
 
-func GetUserAllPermissions(userID int) ([]models.PermissionStruct, error) {
+func GetUserAllPermissions(userID string) ([]models.PermissionStruct, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
 	query := `
 		(
-			SELECT DISTINCT p.id, p.name, p.guard_name, p.description, p.created_at, p.updated_at 
+			SELECT DISTINCT p.id, p.name, p.guard_name, p.created_at, p.updated_at 
 			FROM ` + permissionsTable + ` p
 			INNER JOIN ` + userPermissionsTable + ` up ON p.id = up.permission_id
 			WHERE up.user_id = ?
 		)
 		UNION
 		(
-			SELECT DISTINCT p.id, p.name, p.guard_name, p.description, p.created_at, p.updated_at 
+			SELECT DISTINCT p.id, p.name, p.guard_name, p.created_at, p.updated_at 
 			FROM ` + permissionsTable + ` p
 			INNER JOIN ` + rolePermissionsTable + ` rp ON p.id = rp.permission_id
 			INNER JOIN ` + userRolesTable + ` ur ON rp.role_id = ur.role_id
@@ -212,19 +201,17 @@ func GetUserAllPermissions(userID int) ([]models.PermissionStruct, error) {
 	var permissions []models.PermissionStruct
 	for rows.Next() {
 		var permission models.PermissionStruct
-		var description nulltypes.NullString
-		err = rows.Scan(&permission.ID, &permission.Name, &permission.GuardName, &description, &permission.CreatedAt, &permission.UpdatedAt)
+		err = rows.Scan(&permission.ID, &permission.Name, &permission.GuardName, &permission.CreatedAt, &permission.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
-		permission.Description = description.String
 		permissions = append(permissions, permission)
 	}
 
 	return permissions, nil
 }
 
-func AssignPermissionToRole(roleID int, permissionID int) error {
+func AssignPermissionToRole(roleID string, permissionID string) error {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
@@ -242,7 +229,7 @@ func AssignPermissionToRole(roleID int, permissionID int) error {
 	return err
 }
 
-func RevokePermissionFromRole(roleID int, permissionID int) error {
+func RevokePermissionFromRole(roleID string, permissionID string) error {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
@@ -251,7 +238,7 @@ func RevokePermissionFromRole(roleID int, permissionID int) error {
 	return err
 }
 
-func AssignPermissionToUser(userID int, permissionID int) error {
+func AssignPermissionToUser(userID string, permissionID string) error {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
@@ -269,7 +256,7 @@ func AssignPermissionToUser(userID int, permissionID int) error {
 	return err
 }
 
-func RevokePermissionFromUser(userID int, permissionID int) error {
+func RevokePermissionFromUser(userID string, permissionID string) error {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
@@ -278,7 +265,7 @@ func RevokePermissionFromUser(userID int, permissionID int) error {
 	return err
 }
 
-func RoleHasPermission(roleID int, permissionID int) (bool, error) {
+func RoleHasPermission(roleID string, permissionID string) (bool, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
@@ -292,7 +279,7 @@ func RoleHasPermission(roleID int, permissionID int) (bool, error) {
 	return count > 0, nil
 }
 
-func UserHasDirectPermission(userID int, permissionID int) (bool, error) {
+func UserHasDirectPermission(userID string, permissionID string) (bool, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
@@ -306,7 +293,7 @@ func UserHasDirectPermission(userID int, permissionID int) (bool, error) {
 	return count > 0, nil
 }
 
-func UserHasPermission(userID int, permissionName string, guardName string) (bool, error) {
+func UserHasPermission(userID string, permissionName string, guardName string) (bool, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
@@ -341,7 +328,7 @@ func UserHasPermission(userID int, permissionName string, guardName string) (boo
 	return count > 0, nil
 }
 
-func UserHasAnyPermission(userID int, permissionNames []string, guardName string) (bool, error) {
+func UserHasAnyPermission(userID string, permissionNames []string, guardName string) (bool, error) {
 	if len(permissionNames) == 0 {
 		return false, nil
 	}
@@ -395,7 +382,7 @@ func UserHasAnyPermission(userID int, permissionNames []string, guardName string
 	return count > 0, nil
 }
 
-func UserHasAllPermissions(userID int, permissionNames []string, guardName string) (bool, error) {
+func UserHasAllPermissions(userID string, permissionNames []string, guardName string) (bool, error) {
 	if len(permissionNames) == 0 {
 		return true, nil
 	}

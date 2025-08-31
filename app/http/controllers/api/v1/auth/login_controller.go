@@ -49,7 +49,7 @@ func Login(context *gin.Context) {
 		return
 	}
 	client := clients[0]
-	token, err := oauth_models.CreateToken(int64(storedUser.ID), client.ID, "")
+	token, err := oauth_models.CreateToken(storedUser.ID, client.ID, "")
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"errors": []gin.H{{
 			"status": "500",
@@ -59,7 +59,7 @@ func Login(context *gin.Context) {
 		return
 	}
 
-	resource := resources.NewAuthResource(uint(storedUser.ID), storedUser.FirstName+" "+storedUser.LastName, storedUser.Email, token.AccessToken)
+	resource := resources.NewAuthResource(storedUser.ID, storedUser.FirstName+" "+storedUser.LastName, storedUser.Email, token.AccessToken)
 	response := resources.NewAuthLoginResponse(resource, token.RefreshToken, 86400, token.Scopes)
 	context.JSON(http.StatusOK, response)
 }

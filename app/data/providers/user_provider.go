@@ -45,6 +45,6 @@ func DeleteUser(id string) error {
 }
 
 // MarkEmailVerified marca el email como verificado a través del repositorio
-func MarkEmailVerified(userID int) error {
+func MarkEmailVerified(userID string) error {
 	return repositories.MarkEmailVerified(userID)
 }

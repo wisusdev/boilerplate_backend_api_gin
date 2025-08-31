@@ -53,8 +53,8 @@ func GenerateResetToken(email string) string {
 	return hex.EncodeToString(h.Sum(nil))
 }
 
-func GenerateEmailVerificationHash(userID int, email string) string {
+func GenerateEmailVerificationHash(userID string, email string) string {
 	h := sha256.New()
-	h.Write([]byte(fmt.Sprintf("%d:%s", userID, email)))
+	h.Write([]byte(fmt.Sprintf("%s:%s", userID, email)))
 	return hex.EncodeToString(h.Sum(nil))
 }

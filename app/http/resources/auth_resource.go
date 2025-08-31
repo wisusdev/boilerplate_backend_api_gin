@@ -3,14 +3,14 @@ package resources
 // AuthResource estructura para la respuesta de autenticación
 
 type AuthResource struct {
-	ID    uint   `json:"id"`
+	ID    string `json:"id"`
 	Name  string `json:"name"`
 	Email string `json:"email"`
 	Token string `json:"token,omitempty"`
 }
 
 // NewAuthResource construye la respuesta de autenticación
-func NewAuthResource(id uint, name, email, token string) AuthResource {
+func NewAuthResource(id string, name, email, token string) AuthResource {
 	return AuthResource{
 		ID:    id,
 		Name:  name,
@@ -25,7 +25,7 @@ type AuthLoginResponse struct {
 
 type AuthLoginData struct {
 	Type       string         `json:"type"`
-	ID         uint           `json:"id"`
+	ID         string         `json:"id"`
 	Attributes AuthLoginAttrs `json:"attributes"`
 	Meta       AuthLoginMeta  `json:"meta"`
 }

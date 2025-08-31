@@ -94,7 +94,7 @@ func UserStore(context *gin.Context) {
 		return
 	}
 
-	var errorAssignRole = roleAndPermissionModels.AssignRoleToUser(userStore.ID, int(intRoleID))
+	var errorAssignRole = roleAndPermissionModels.AssignRoleToUser(userStore.ID, string(intRoleID))
 	if errorAssignRole != nil {
 		http.Error(context.Writer, "Error al asignar el rol al usuario", http.StatusInternalServerError)
 		return
@@ -131,19 +131,16 @@ func UserEdit(context *gin.Context) {
 func UserUpdate(context *gin.Context) {
 	var id = context.Param("id")
 
-	var intID, errorParse = strconv.ParseInt(id, 10, 64)
-	if errorParse != nil {
-		http.Error(context.Writer, "ID de usuario inválido", http.StatusBadRequest)
+	var user, errorUser = providers.GetUserByID(id)
+	if errorUser != nil {
+		http.Error(context.Writer, "Error al obtener el usuario desde la base de datos", http.StatusInternalServerError)
 		return
 	}
 
-	var user = models.UserStruct{
-		ID:        int(intID),
-		FirstName: context.PostForm("first_name"),
-		LastName:  context.PostForm("last_name"),
-		Email:     context.PostForm("email"),
-		Password:  context.PostForm("password"),
-	}
+	user.FirstName = context.PostForm("first_name")
+	user.LastName = context.PostForm("last_name")
+	user.Email = context.PostForm("email")
+	user.Password = context.PostForm("password")
 
 	var errorUpdate = providers.UpdateUser(user)
 	if errorUpdate != nil {

@@ -20,7 +20,7 @@ func ResendEmailVerify(context *gin.Context) {
 	}
 	// Generar hash de verificación
 	hash := helpers.GenerateEmailVerificationHash(user.ID, user.Email)
-	verifyURL := "/auth/email/verify/" + strconv.Itoa(user.ID) + "/" + hash
+	verifyURL := "/auth/email/verify/" + user.ID + "/" + hash
 	err = notifications.SendEmailVerification(user.Email, verifyURL)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": "No se pudo enviar el correo de verificación"})

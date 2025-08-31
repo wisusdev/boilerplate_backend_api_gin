@@ -19,7 +19,7 @@ type OAuthTokenClaims struct {
 }
 
 // GenerateJWTToken genera un token JWT con los datos proporcionados
-func GenerateJWTToken(userID int64, clientID string, tokenID string, scopes []string, isRefresh bool) (string, time.Time, error) {
+func GenerateJWTToken(userID string, clientID string, tokenID string, scopes []string, isRefresh bool) (string, time.Time, error) {
 	var expirationSeconds int64
 	var expirationEnvVar string
 

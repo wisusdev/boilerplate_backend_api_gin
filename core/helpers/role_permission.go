@@ -14,10 +14,10 @@ func NewRolePermissionHelper() *RolePermissionHelper {
 }
 
 // getUserIDFromRequest obtiene el ID del usuario autenticado desde la request
-func (rph *RolePermissionHelper) getUserIDFromRequest(request *http.Request) (int, bool) {
+func (rph *RolePermissionHelper) getUserIDFromRequest(request *http.Request) (string, bool) {
 	user, authenticated := GetAuthenticatedUser(request)
 	if !authenticated {
-		return 0, false
+		return "", false
 	}
 	return user.ID, true
 }

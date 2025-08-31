@@ -160,7 +160,7 @@ func (pc *PermissionController) AssignToUser(c *gin.Context) {
 		return
 	}
 
-	if request.UserID == 0 {
+	if request.UserID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
 			"message": "User ID is required",
@@ -195,7 +195,7 @@ func (pc *PermissionController) AssignToRole(c *gin.Context) {
 		return
 	}
 
-	if request.RoleID == 0 {
+	if request.RoleID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
 			"message": "Role ID is required",
@@ -230,7 +230,7 @@ func (pc *PermissionController) RevokeFromUser(c *gin.Context) {
 		return
 	}
 
-	if request.UserID == 0 {
+	if request.UserID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
 			"message": "User ID is required",
@@ -265,7 +265,7 @@ func (pc *PermissionController) RevokeFromRole(c *gin.Context) {
 		return
 	}
 
-	if request.RoleID == 0 {
+	if request.RoleID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
 			"message": "Role ID is required",
@@ -290,9 +290,8 @@ func (pc *PermissionController) RevokeFromRole(c *gin.Context) {
 
 // GetUserPermissions obtiene todos los permisos de un usuario (directos + heredados)
 func (pc *PermissionController) GetUserPermissions(c *gin.Context) {
-	userIDParam := c.Param("user_id")
-	userID, err := strconv.Atoi(userIDParam)
-	if err != nil {
+	userID := c.Param("user_id")
+	if userID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
 			"message": "Invalid user ID",

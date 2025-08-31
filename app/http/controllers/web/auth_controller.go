@@ -8,7 +8,6 @@ import (
 	"semita/app/notifications"
 	"semita/config"
 	"semita/core/helpers"
-	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -153,7 +152,7 @@ func AuthRegisterPost(context *gin.Context) {
 	}
 
 	if config.AppConfig().MustVerifyEmail {
-		verifyURL := "http://" + config.AppConfig().Url + "/auth/email/verify/" + strconv.Itoa(userStore.ID) + "/" + helpers.GenerateEmailVerificationHash(userStore.ID, userStore.Email)
+		verifyURL := "http://" + config.AppConfig().Url + "/auth/email/verify/" + userStore.ID + "/" + helpers.GenerateEmailVerificationHash(userStore.ID, userStore.Email)
 		err = notifications.SendEmailVerification(userStore.Email, verifyURL)
 
 		if err != nil {
@@ -360,7 +359,7 @@ func AuthResendVerification(context *gin.Context) {
 		return
 	}
 
-	verifyURL := "http://" + config.AppConfig().Url + "/auth/email/verify/" + strconv.Itoa(user.ID) + "/" + helpers.GenerateEmailVerificationHash(user.ID, user.Email)
+	verifyURL := "http://" + config.AppConfig().Url + "/auth/email/verify/" + user.ID + "/" + helpers.GenerateEmailVerificationHash(user.ID, user.Email)
 	err = notifications.SendEmailVerification(user.Email, verifyURL)
 	if err != nil {
 		helpers.Logs("ERROR", fmt.Sprintf("Error sending verification email: %v", err))

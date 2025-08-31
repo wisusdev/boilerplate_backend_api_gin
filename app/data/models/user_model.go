@@ -6,7 +6,7 @@ import (
 )
 
 type UserStruct struct {
-	ID              int                  `json:"id" db:"INT PRIMARY KEY AUTO_INCREMENT"`
+	ID              string               `json:"id" db:"VARCHAR(36) PRIMARY KEY"`
 	FirstName       string               `json:"first_name" db:"VARCHAR(255)" nullable:"false"`
 	LastName        string               `json:"last_name" db:"VARCHAR(255)" nullable:"false"`
 	Username        string               `json:"username" db:"VARCHAR(255)" unique:"true" nullable:"false"`

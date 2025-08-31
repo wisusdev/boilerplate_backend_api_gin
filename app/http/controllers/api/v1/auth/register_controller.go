@@ -25,7 +25,7 @@ func Register(context *gin.Context) {
 	}
 
 	existingUser, _ := providers.GetUserByEmail(req.Email)
-	if existingUser.ID > 0 {
+	if existingUser.ID != "" {
 		context.JSON(http.StatusConflict, gin.H{"errors": []gin.H{{
 			"status": "409",
 			"title":  "Conflict",
@@ -82,7 +82,7 @@ func Register(context *gin.Context) {
 		return
 	}
 	client := clients[0]
-	token, err := oauth_models.CreateToken(int64(storedUser.ID), client.ID, "")
+	token, err := oauth_models.CreateToken(storedUser.ID, client.ID, "")
 	if err != nil {
 		helpers.Logs("ERROR", "Error generating OAuth token: "+err.Error())
 		context.JSON(http.StatusInternalServerError, gin.H{"errors": []gin.H{{
@@ -93,7 +93,7 @@ func Register(context *gin.Context) {
 		return
 	}
 
-	resource := resources.NewAuthResource(uint(storedUser.ID), storedUser.FirstName+" "+storedUser.LastName, storedUser.Email, token.AccessToken)
+	resource := resources.NewAuthResource(storedUser.ID, storedUser.FirstName+" "+storedUser.LastName, storedUser.Email, token.AccessToken)
 	context.JSON(http.StatusCreated, gin.H{
 		"data": gin.H{
 			"type": "users",

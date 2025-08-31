@@ -7,7 +7,6 @@ import (
 	"semita/core/helpers"
 	rolesAndPermissionsStructs "semita/core/roles_and_permissions/models"
 	rolesAndPermissionsModels "semita/core/roles_and_permissions/providers"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,9 +16,8 @@ type UserPermissionController struct{}
 
 // CheckUserPermissions verifica los permisos de un usuario específico
 func (upc *UserPermissionController) CheckUserPermissions(c *gin.Context) {
-	userIDParam := c.Param("user_id")
-	userID, err := strconv.Atoi(userIDParam)
-	if err != nil {
+	userID := c.Param("user_id")
+	if userID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
 			"message": "Invalid user ID",
@@ -58,7 +56,7 @@ func (upc *UserPermissionController) CheckUserPermissions(c *gin.Context) {
 	}
 
 	// Obtener información del usuario
-	user, err := providers.GetUserByID(strconv.Itoa(userID))
+	user, err := providers.GetUserByID(userID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"status":  "error",
@@ -148,9 +146,9 @@ func (upc *UserPermissionController) CheckCurrentUserPermissions(c *gin.Context)
 
 // CheckRole verifica si un usuario tiene un rol específico
 func (upc *UserPermissionController) CheckRole(c *gin.Context) {
-	userIDParam := c.Param("user_id")
-	userID, err := strconv.Atoi(userIDParam)
-	if err != nil {
+	userID := c.Param("user_id")
+
+	if userID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
 			"message": "Invalid user ID",
@@ -194,9 +192,9 @@ func (upc *UserPermissionController) CheckRole(c *gin.Context) {
 
 // CheckPermission verifica si un usuario tiene un permiso específico
 func (upc *UserPermissionController) CheckPermission(c *gin.Context) {
-	userIDParam := c.Param("user_id")
-	userID, err := strconv.Atoi(userIDParam)
-	if err != nil {
+	userID := c.Param("user_id")
+
+	if userID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
 			"message": "Invalid user ID",

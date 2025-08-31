@@ -6,7 +6,6 @@ import (
 	"semita/core/helpers"
 	"semita/core/roles_and_permissions/models"
 	rolesAndPermissionsModels "semita/core/roles_and_permissions/providers"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -82,7 +81,6 @@ func (ac *AdminController) UserShow(context *gin.Context) {
 	}
 
 	userID := context.Param("id")
-	userIDInt, _ := strconv.Atoi(userID)
 	user, err := providers.GetUserByID(userID)
 	if err != nil {
 		helpers.CreateFlashNotification(context.Writer, context.Request, "error", "Usuario no encontrado.")
@@ -91,21 +89,21 @@ func (ac *AdminController) UserShow(context *gin.Context) {
 	}
 
 	// Obtener roles y permisos del usuario
-	userRoles, err := rolesAndPermissionsModels.GetUserRoles(userIDInt)
+	userRoles, err := rolesAndPermissionsModels.GetUserRoles(userID)
 	if err != nil {
 		helpers.CreateFlashNotification(context.Writer, context.Request, "error", "Error al obtener roles del usuario.")
 		context.Redirect(http.StatusSeeOther, "/admin/users")
 		return
 	}
 
-	userDirectPermissions, err := rolesAndPermissionsModels.GetUserDirectPermissions(userIDInt)
+	userDirectPermissions, err := rolesAndPermissionsModels.GetUserDirectPermissions(userID)
 	if err != nil {
 		helpers.CreateFlashNotification(context.Writer, context.Request, "error", "Error al obtener permisos del usuario.")
 		context.Redirect(http.StatusSeeOther, "/admin/users")
 		return
 	}
 
-	userAllPermissions, err := rolesAndPermissionsModels.GetUserAllPermissions(userIDInt)
+	userAllPermissions, err := rolesAndPermissionsModels.GetUserAllPermissions(userID)
 	if err != nil {
 		helpers.CreateFlashNotification(context.Writer, context.Request, "error", "Error al obtener todos los permisos del usuario.")
 		context.Redirect(http.StatusSeeOther, "/admin/users")

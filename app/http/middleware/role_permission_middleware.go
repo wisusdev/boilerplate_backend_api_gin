@@ -1,17 +1,18 @@
 package middleware
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"semita/core/helpers"
 	"semita/core/roles_and_permissions/providers"
+
+	"github.com/gin-gonic/gin"
 )
 
 // getUserFromSession obtiene el usuario autenticado de la sesión
-func getUserFromSession(c *gin.Context) (int, bool) {
+func getUserFromSession(c *gin.Context) (string, bool) {
 	user, authenticated := helpers.GetAuthenticatedUser(c.Request)
 	if !authenticated {
-		return 0, false
+		return "", false
 	}
 	return user.ID, true
 }

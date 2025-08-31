@@ -64,7 +64,7 @@ func scanUserRow(scanner interface {
 		&avatarPtr, &user.Language, &user.Email, &emailVerifiedAtStr, &user.Password,
 		&createdAtStr, &updatedAtStr,
 	)
-	
+
 	if err != nil {
 		return models.UserStruct{}, err
 	}
@@ -225,7 +225,7 @@ func DeleteUser(id string) (err error) {
 }
 
 // MarkEmailVerified actualiza el campo email_verified_at del usuario
-func MarkEmailVerified(userID int) error {
+func MarkEmailVerified(userID string) error {
 	db := database_connections.DatabaseConnectSQL()
 	defer db.Close()
 	_, err := db.Exec("UPDATE "+userTable+" SET email_verified_at = ? WHERE id = ?", time.Now().Format("2006-01-02 15:04:05"), userID)

@@ -2,7 +2,6 @@ package repositories
 
 import (
 	"fmt"
-	"semita/core/common/nulltypes"
 	"semita/core/database/database_connections"
 	"semita/core/roles_and_permissions/models"
 	"strings"
@@ -15,7 +14,7 @@ func GetAllRoles() ([]models.RoleStruct, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
-	query := `SELECT id, name, guard_name, description, created_at, updated_at FROM ` + rolesTable + ` ORDER BY name`
+	query := `SELECT id, name, guard_name, created_at, updated_at FROM ` + rolesTable + ` ORDER BY name`
 	rows, err := database.Query(query)
 	if err != nil {
 		return nil, err
@@ -25,12 +24,10 @@ func GetAllRoles() ([]models.RoleStruct, error) {
 	var roles []models.RoleStruct
 	for rows.Next() {
 		var role models.RoleStruct
-		var description nulltypes.NullString
-		err = rows.Scan(&role.ID, &role.Name, &role.GuardName, &description, &role.CreatedAt, &role.UpdatedAt)
+		err = rows.Scan(&role.ID, &role.Name, &role.GuardName, &role.CreatedAt, &role.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
-		role.Description = description.String
 		roles = append(roles, role)
 	}
 
@@ -41,16 +38,14 @@ func GetRoleByID(id int) (*models.RoleStruct, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
-	query := `SELECT id, name, guard_name, description, created_at, updated_at FROM ` + rolesTable + ` WHERE id = ?`
+	query := `SELECT id, name, guard_name, created_at, updated_at FROM ` + rolesTable + ` WHERE id = ?`
 	row := database.QueryRow(query, id)
 
 	var role models.RoleStruct
-	var description nulltypes.NullString
-	err := row.Scan(&role.ID, &role.Name, &role.GuardName, &description, &role.CreatedAt, &role.UpdatedAt)
+	err := row.Scan(&role.ID, &role.Name, &role.GuardName, &role.CreatedAt, &role.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}
-	role.Description = description.String
 
 	return &role, nil
 }
@@ -59,16 +54,14 @@ func GetRoleByName(name string, guardName string) (*models.RoleStruct, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
-	query := `SELECT id, name, guard_name, description, created_at, updated_at FROM ` + rolesTable + ` WHERE name = ? AND guard_name = ?`
+	query := `SELECT id, name, guard_name, created_at, updated_at FROM ` + rolesTable + ` WHERE name = ? AND guard_name = ?`
 	row := database.QueryRow(query, name, guardName)
 
 	var role models.RoleStruct
-	var description nulltypes.NullString
-	err := row.Scan(&role.ID, &role.Name, &role.GuardName, &description, &role.CreatedAt, &role.UpdatedAt)
+	err := row.Scan(&role.ID, &role.Name, &role.GuardName, &role.CreatedAt, &role.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}
-	role.Description = description.String
 
 	return &role, nil
 }
@@ -81,8 +74,8 @@ func CreateRole(roleData models.CreateRoleStruct) (*models.RoleStruct, error) {
 		roleData.GuardName = "web"
 	}
 
-	query := `INSERT INTO ` + rolesTable + ` (name, guard_name, description) VALUES (?, ?, ?)`
-	result, err := database.Exec(query, roleData.Name, roleData.GuardName, roleData.Description)
+	query := `INSERT INTO ` + rolesTable + ` (name, guard_name) VALUES (?, ?, ?)`
+	result, err := database.Exec(query, roleData.Name, roleData.GuardName)
 	if err != nil {
 		return nil, err
 	}
@@ -99,8 +92,8 @@ func UpdateRole(id int, roleData models.CreateRoleStruct) (*models.RoleStruct, e
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
-	query := `UPDATE ` + rolesTable + ` SET name = ?, description = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`
-	_, err := database.Exec(query, roleData.Name, roleData.Description, id)
+	query := `UPDATE ` + rolesTable + ` SET name = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`
+	_, err := database.Exec(query, roleData.Name, id)
 	if err != nil {
 		return nil, err
 	}
@@ -117,12 +110,12 @@ func DeleteRole(id int) error {
 	return err
 }
 
-func GetUserRoles(userID int) ([]models.RoleStruct, error) {
+func GetUserRoles(userID string) ([]models.RoleStruct, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
 	query := `
-		SELECT r.id, r.name, r.guard_name, r.description, r.created_at, r.updated_at 
+		SELECT r.id, r.name, r.guard_name, r.created_at, r.updated_at 
 		FROM ` + rolesTable + ` r
 		INNER JOIN ` + userRolesTable + ` ur ON r.id = ur.role_id
 		WHERE ur.user_id = ?
@@ -137,19 +130,17 @@ func GetUserRoles(userID int) ([]models.RoleStruct, error) {
 	var roles []models.RoleStruct
 	for rows.Next() {
 		var role models.RoleStruct
-		var description nulltypes.NullString
-		err = rows.Scan(&role.ID, &role.Name, &role.GuardName, &description, &role.CreatedAt, &role.UpdatedAt)
+		err = rows.Scan(&role.ID, &role.Name, &role.GuardName, &role.CreatedAt, &role.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
-		role.Description = description.String
 		roles = append(roles, role)
 	}
 
 	return roles, nil
 }
 
-func AssignRoleToUser(userID int, roleID int) error {
+func AssignRoleToUser(userID string, roleID string) error {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
@@ -167,7 +158,7 @@ func AssignRoleToUser(userID int, roleID int) error {
 	return err
 }
 
-func RevokeRoleFromUser(userID int, roleID int) error {
+func RevokeRoleFromUser(userID string, roleID string) error {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
@@ -176,7 +167,7 @@ func RevokeRoleFromUser(userID int, roleID int) error {
 	return err
 }
 
-func UserHasRole(userID int, roleID int) (bool, error) {
+func UserHasRole(userID string, roleID string) (bool, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
@@ -190,7 +181,7 @@ func UserHasRole(userID int, roleID int) (bool, error) {
 	return count > 0, nil
 }
 
-func UserHasRoleByName(userID int, roleName string, guardName string) (bool, error) {
+func UserHasRoleByName(userID string, roleName string, guardName string) (bool, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
@@ -213,7 +204,7 @@ func UserHasRoleByName(userID int, roleName string, guardName string) (bool, err
 	return count > 0, nil
 }
 
-func UserHasAnyRole(userID int, roleNames []string, guardName string) (bool, error) {
+func UserHasAnyRole(userID string, roleNames []string, guardName string) (bool, error) {
 	if len(roleNames) == 0 {
 		return false, nil
 	}
@@ -251,7 +242,7 @@ func UserHasAnyRole(userID int, roleNames []string, guardName string) (bool, err
 	return count > 0, nil
 }
 
-func UserHasAllRoles(userID int, roleNames []string, guardName string) (bool, error) {
+func UserHasAllRoles(userID string, roleNames []string, guardName string) (bool, error) {
 	if len(roleNames) == 0 {
 		return true, nil
 	}

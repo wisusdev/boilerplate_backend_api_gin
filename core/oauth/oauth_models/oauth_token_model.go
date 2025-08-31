@@ -9,8 +9,8 @@ import (
 )
 
 type OAuthToken struct {
-	ID           int64  `db:"id"`
-	UserID       int64  `db:"user_id"`
+	ID           string `db:"id"`
+	UserID       string `db:"user_id"`
 	ClientID     int64  `db:"client_id"`
 	AccessToken  string `db:"access_token"`
 	RefreshToken string `db:"refresh_token"`
@@ -71,7 +71,7 @@ func GetTokenByRefreshToken(refreshToken string) (*OAuthToken, error) {
 }
 
 // CreateToken crea un nuevo token de acceso
-func CreateToken(userID int64, clientID int64, scopes string) (*OAuthToken, error) {
+func CreateToken(userID string, clientID int64, scopes string) (*OAuthToken, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 

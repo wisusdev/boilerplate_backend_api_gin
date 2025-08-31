@@ -219,9 +219,8 @@ func (rc *RoleController) RevokeFromUser(c *gin.Context) {
 
 // GetUserRoles obtiene todos los roles de un usuario
 func (rc *RoleController) GetUserRoles(c *gin.Context) {
-	userIDParam := c.Param("user_id")
-	userID, err := strconv.Atoi(userIDParam)
-	if err != nil {
+	userID := c.Param("user_id")
+	if userID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
 			"message": "Invalid user ID",

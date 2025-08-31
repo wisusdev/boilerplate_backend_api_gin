@@ -20,16 +20,17 @@ func WithMigrator(action func(migrator *generate_migrations.Migrator)) {
 
 	migrator := generate_migrations.NewMigrator(db)
 
+	// Registrar migraciones en el orden cronológico de Laravel
 	migrator.Register(NewCreateUsersTable())
-	migrator.Register(NewCreatePasswordResetsTable())
+	migrator.Register(NewCreatePasswordResetTokensTable())
+	migrator.Register(NewCreateOauthAuthCodesTable())
+	migrator.Register(NewCreateOauthAccessTokensTable())
+	migrator.Register(NewCreateOauthRefreshTokensTable())
 	migrator.Register(NewCreateOAuthClientsTable())
-	migrator.Register(NewCreateOAuthTokensTable())
-	migrator.Register(NewCreateOAuthScopesTable())
-	migrator.Register(NewCreateRolesTable())
-	migrator.Register(NewCreatePermissionsTable())
-	migrator.Register(NewCreateUserRolesTable())
-	migrator.Register(NewCreateRolePermissionsTable())
-	migrator.Register(NewCreateUserPermissionsTable())
+	migrator.Register(NewCreateOauthPersonalAccessClientsTable())
+	migrator.Register(NewCreateFailedJobsTable())
+	migrator.Register(NewCreatePersonalAccessTokensTable())
+	migrator.Register(NewCreatePermissionTablesTable())
 
 	fmt.Println("🚀 Ejecutando acción del migrator...")
 	action(migrator)
