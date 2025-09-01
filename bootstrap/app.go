@@ -34,7 +34,7 @@ func Execute(args []string) {
 	cmd, ok := cli.Commands[commandName]
 	if !ok {
 		helpers.Logs("ERROR", "Comando no encontrado: "+commandName)
-		fmt.Printf("Comando '%s' no encontrado. Ejecuta 'go run main.go list' para ver los comandos disponibles.\n", commandName)
+		fmt.Printf("Comando '%s' no encontrado. Ejecuta 'go run main.go help' para ver los comandos disponibles.\n", commandName)
 		os.Exit(1)
 	}
 
