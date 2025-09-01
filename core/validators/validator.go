@@ -398,6 +398,9 @@ func Validate(context *gin.Context, request Validatable) error {
 	// Obtener las reglas del request
 	validator := request.Rules()
 
+	// Configurar la conexión a la base de datos
+	validator.SetDatabase(database_connections.DatabaseConnectSQL())
+
 	// Obtener mensajes personalizados
 	if messages := request.Messages(); messages != nil {
 		validator.Messages(messages)
@@ -432,7 +435,7 @@ func Validate(context *gin.Context, request Validatable) error {
 				Title:  "Validation Error",
 				Detail: "The given data was invalid",
 				Source: ValidationErrorSource{
-					Pointer: fmt.Sprintf("/data/attributes/%s", err.Field),
+					Pointer: fmt.Sprintf("/data/attributes/%s", strings.Replace(err.Field, "data.attributes.", "", 1)),
 				},
 				Meta: ValidationErrorMeta{
 					Field:   err.Field,

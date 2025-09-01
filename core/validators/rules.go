@@ -246,7 +246,10 @@ func (r *ExistsRule) Validate(value interface{}, data map[string]interface{}) er
 	}
 
 	if r.DB == nil {
-		return fmt.Errorf("database connection not provided for exists validation")
+		r.DB = database_connections.DatabaseConnectSQL()
+		if r.DB == nil {
+			return fmt.Errorf("database connection not provided for exists validation")
+		}
 	}
 
 	query := fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE %s = ?", r.Table, r.Column)
