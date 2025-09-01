@@ -82,7 +82,7 @@ func Register(context *gin.Context) {
 		return
 	}
 	client := clients[0]
-	token, err := oauth_models.CreateToken(storedUser.ID, client.ID, "")
+	token, err := oauth_models.CreateToken(storedUser.ID, client.ClientID, "")
 	if err != nil {
 		helpers.Logs("ERROR", "Error generating OAuth token: "+err.Error())
 		context.JSON(http.StatusInternalServerError, gin.H{"errors": []gin.H{{

@@ -1,9 +1,10 @@
 package auth
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"semita/core/oauth/oauth_models"
+
+	"github.com/gin-gonic/gin"
 )
 
 type TokenResponse struct {
@@ -17,7 +18,7 @@ type TokenResponse struct {
 func RefreshToken(c *gin.Context) {
 	var request struct {
 		RefreshToken string `json:"refresh_token" binding:"required"`
-		ClientID     string `json:"client_id" binding:"required"`
+		ClientID     int64  `json:"client_id" binding:"required"`
 		ClientSecret string `json:"client_secret" binding:"required"`
 	}
 
