@@ -18,9 +18,9 @@ func (request *LoginRequest) Rules() *validators.Validator {
 	validator := validators.New()
 
 	// Validar estructura JSON:API
-	validator.Field("data").Required().Array()
+	validator.Field("data").Required()
 	validator.Field("data.type").Required().String().In("users")
-	validator.Field("data.attributes").Required().Array()
+	validator.Field("data.attributes").Required()
 	validator.Field("data.attributes.email").Required().Email().Exists("users", "email")
 	validator.Field("data.attributes.password").Required().Min(6)
 
