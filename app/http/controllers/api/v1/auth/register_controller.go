@@ -2,12 +2,13 @@ package auth
 
 import (
 	"net/http"
-	"semita/app/data/models"
-	"semita/app/data/providers"
+	userModels "semita/app/data/models"
+	userProviders "semita/app/data/providers"
 	"semita/app/http/requests"
 	"semita/app/http/resources"
 	"semita/core/helpers"
 	"semita/core/oauth/oauth_models"
+	rpProviders "semita/core/roles_and_permissions/providers"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
@@ -24,7 +25,7 @@ func Register(context *gin.Context) {
 		return
 	}
 
-	existingUser, _ := providers.GetUserByEmail(req.Email)
+	existingUser, _ := userProviders.GetUserByEmail(req.Email)
 	if existingUser.ID != "" {
 		context.JSON(http.StatusConflict, gin.H{"errors": []gin.H{{
 			"status": "409",
@@ -44,7 +45,7 @@ func Register(context *gin.Context) {
 		return
 	}
 
-	userToStore := models.UserStruct{
+	userToStore := userModels.UserStruct{
 		FirstName: req.FirstName,
 		LastName:  req.LastName,
 		Username:  req.Username,
@@ -52,7 +53,7 @@ func Register(context *gin.Context) {
 		Password:  string(hashedPassword),
 	}
 
-	_, errorStore := providers.StoreUser(userToStore)
+	_, errorStore := userProviders.StoreUser(userToStore)
 	if errorStore != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"errors": []gin.H{{
 			"status": "500",
@@ -62,7 +63,7 @@ func Register(context *gin.Context) {
 		return
 	}
 
-	storedUser, err := providers.GetUserByEmail(req.Email)
+	storedUser, err := userProviders.GetUserByEmail(req.Email)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"errors": []gin.H{{
 			"status": "500",
@@ -93,21 +94,28 @@ func Register(context *gin.Context) {
 		return
 	}
 
-	resource := resources.NewAuthResource(storedUser.ID, storedUser.FirstName+" "+storedUser.LastName, storedUser.Email, token.AccessToken)
-	context.JSON(http.StatusCreated, gin.H{
-		"data": gin.H{
-			"type": "users",
-			"id":   resource.ID,
-			"attributes": gin.H{
-				"name":  resource.Name,
-				"email": resource.Email,
-			},
-			"meta": gin.H{
-				"token":         resource.Token,
-				"refresh_token": token.RefreshToken,
-				"expires_in":    86400,
-				"scope":         token.Scopes,
-			},
-		},
-	})
+	// Obtener roles del usuario
+	roles, err := rpProviders.GetUserRoles(storedUser.ID)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"errors": []gin.H{{
+			"status": "500",
+			"title":  "Server Error",
+			"detail": "Error getting user roles",
+		}}})
+		return
+	}
+
+	// Obtener permisos del usuario
+	permissions, err := rpProviders.GetUserAllPermissions(storedUser.ID)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"errors": []gin.H{{
+			"status": "500",
+			"title":  "Server Error",
+			"detail": "Error getting user permissions",
+		}}})
+		return
+	}
+
+	response := resources.NewAuthLoginResponse(storedUser, roles, permissions, token.AccessToken, token.ExpiresAt)
+	context.JSON(http.StatusCreated, response)
 }

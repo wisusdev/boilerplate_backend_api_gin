@@ -2,10 +2,11 @@ package auth
 
 import (
 	"net/http"
-	"semita/app/data/providers"
+	userProviders "semita/app/data/providers"
 	"semita/app/http/requests"
 	"semita/app/http/resources"
 	"semita/core/oauth/oauth_models"
+	rpProviders "semita/core/roles_and_permissions/providers"
 	"semita/core/validators"
 
 	"github.com/gin-gonic/gin"
@@ -19,7 +20,7 @@ func Login(context *gin.Context) {
 		return
 	}
 
-	storedUser, err := providers.GetUserByEmail(request.Data.Attributes.Email)
+	storedUser, err := userProviders.GetUserByEmail(request.Data.Attributes.Email)
 	if err != nil {
 		context.JSON(http.StatusUnauthorized, gin.H{"errors": []gin.H{{
 			"status": "401",
@@ -59,7 +60,28 @@ func Login(context *gin.Context) {
 		return
 	}
 
-	resource := resources.NewAuthResource(storedUser.ID, storedUser.FirstName+" "+storedUser.LastName, storedUser.Email, token.AccessToken)
-	response := resources.NewAuthLoginResponse(resource, token.RefreshToken, 86400, token.Scopes)
+	// Obtener roles del usuario
+	roles, err := rpProviders.GetUserRoles(storedUser.ID)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"errors": []gin.H{{
+			"status": "500",
+			"title":  "Server Error",
+			"detail": "Error getting user roles",
+		}}})
+		return
+	}
+
+	// Obtener permisos del usuario
+	permissions, err := rpProviders.GetUserAllPermissions(storedUser.ID)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"errors": []gin.H{{
+			"status": "500",
+			"title":  "Server Error",
+			"detail": "Error getting user permissions",
+		}}})
+		return
+	}
+
+	response := resources.NewAuthLoginResponse(storedUser, roles, permissions, token.AccessToken, token.ExpiresAt)
 	context.JSON(http.StatusOK, response)
 }
