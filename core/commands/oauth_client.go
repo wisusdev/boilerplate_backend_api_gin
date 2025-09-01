@@ -1,9 +1,10 @@
 package commands
 
 import (
-	"crypto/rand"
+	crand "crypto/rand"
 	"encoding/hex"
 	"fmt"
+	mrand "math/rand"
 	"os"
 	"semita/core/cli"
 	"semita/core/oauth/oauth_models"
@@ -17,10 +18,10 @@ var OauthClientCmd = cli.Command{
 		if len(args) > 0 {
 			name = args[0]
 		}
-		clientID := randomHex(16)
+		clientID := int64(mrand.Int31() + 1)
 		clientSecret := randomHex(32)
 
-		err := oauth_models.CreateOAuthClient(name, clientID, clientSecret)
+		err := oauth_models.CreateOAuthClient(clientID, name, clientSecret)
 		if err != nil {
 			fmt.Println("Error creando el cliente OAuth:", err)
 			os.Exit(1)
@@ -33,7 +34,7 @@ var OauthClientCmd = cli.Command{
 
 func randomHex(n int) string {
 	b := make([]byte, n)
-	_, err := rand.Read(b)
+	_, err := crand.Read(b)
 	if err != nil {
 		panic(err)
 	}
