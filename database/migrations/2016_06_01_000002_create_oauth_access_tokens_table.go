@@ -24,7 +24,7 @@ func (m *CreateOauthAccessTokensTable) Up(db database_connections.SQLAdapter) er
 	schemaBuilder := schema.NewSchema()
 
 	sql := schemaBuilder.Create("oauth_access_tokens", func(table *schema.Blueprint) {
-		table.String("id", 100)
+		table.String("id", 500)
 		table.Uuid("user_id").Nullable().Index()
 		table.BigInteger("client_id").Unsigned()
 		table.String("name", 255).Nullable()

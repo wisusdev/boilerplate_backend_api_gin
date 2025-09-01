@@ -24,8 +24,8 @@ func (m *CreateOauthRefreshTokensTable) Up(db database_connections.SQLAdapter) e
 	schemaBuilder := schema.NewSchema()
 
 	sql := schemaBuilder.Create("oauth_refresh_tokens", func(table *schema.Blueprint) {
-		table.String("id", 100)
-		table.String("access_token_id", 100).Index()
+		table.String("id", 500)
+		table.String("access_token_id", 500).Index()
 		table.Boolean("revoked")
 		table.DateTime("expires_at").Nullable()
 		table.Primary([]string{"id"})
