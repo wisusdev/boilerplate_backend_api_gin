@@ -8,7 +8,7 @@ import (
 )
 
 var rolesTable = "roles"
-var userRolesTable = "user_roles"
+var userRolesTable = "model_has_roles"
 
 func GetAllRoles() ([]models.RoleStruct, error) {
 	database := database_connections.DatabaseConnectSQL()
@@ -115,10 +115,10 @@ func GetUserRoles(userID string) ([]models.RoleStruct, error) {
 	defer database.Close()
 
 	query := `
-		SELECT r.id, r.name, r.guard_name, r.created_at, r.updated_at 
+		SELECT r.uuid, r.name, r.guard_name, r.created_at, r.updated_at
 		FROM ` + rolesTable + ` r
-		INNER JOIN ` + userRolesTable + ` ur ON r.id = ur.role_id
-		WHERE ur.user_id = ?
+		INNER JOIN ` + userRolesTable + ` ur ON r.uuid = ur.role_id
+		WHERE ur.model_id = ? AND ur.model_type = 'users'
 		ORDER BY r.name
 	`
 	rows, err := database.Query(query, userID)

@@ -8,8 +8,8 @@ import (
 )
 
 var permissionsTable = "permissions"
-var rolePermissionsTable = "role_permissions"
-var userPermissionsTable = "user_permissions"
+var rolePermissionsTable = "role_has_permissions"
+var userPermissionsTable = "model_has_permissions"
 
 func GetAllPermissions() ([]models.PermissionStruct, error) {
 	database := database_connections.DatabaseConnectSQL()
@@ -146,10 +146,10 @@ func GetUserDirectPermissions(userID string) ([]models.PermissionStruct, error) 
 	defer database.Close()
 
 	query := `
-		SELECT p.id, p.name, p.guard_name, p.created_at, p.updated_at 
+		SELECT p.uuid, p.name, p.guard_name, p.created_at, p.updated_at 
 		FROM ` + permissionsTable + ` p
-		INNER JOIN ` + userPermissionsTable + ` up ON p.id = up.permission_id
-		WHERE up.user_id = ?
+		INNER JOIN ` + userPermissionsTable + ` up ON p.uuid = up.permission_id
+		WHERE up.model_id = ? AND up.model_type = 'users'
 		ORDER BY p.name
 	`
 	rows, err := database.Query(query, userID)
@@ -177,18 +177,18 @@ func GetUserAllPermissions(userID string) ([]models.PermissionStruct, error) {
 
 	query := `
 		(
-			SELECT DISTINCT p.id, p.name, p.guard_name, p.created_at, p.updated_at 
+			SELECT DISTINCT p.uuid, p.name, p.guard_name, p.created_at, p.updated_at 
 			FROM ` + permissionsTable + ` p
-			INNER JOIN ` + userPermissionsTable + ` up ON p.id = up.permission_id
-			WHERE up.user_id = ?
+			INNER JOIN ` + userPermissionsTable + ` up ON p.uuid = up.permission_id
+			WHERE up.model_id = ? AND up.model_type = 'users'
 		)
 		UNION
 		(
-			SELECT DISTINCT p.id, p.name, p.guard_name, p.created_at, p.updated_at 
+			SELECT DISTINCT p.uuid, p.name, p.guard_name, p.created_at, p.updated_at 
 			FROM ` + permissionsTable + ` p
-			INNER JOIN ` + rolePermissionsTable + ` rp ON p.id = rp.permission_id
+			INNER JOIN ` + rolePermissionsTable + ` rp ON p.uuid = rp.permission_id
 			INNER JOIN ` + userRolesTable + ` ur ON rp.role_id = ur.role_id
-			WHERE ur.user_id = ?
+			WHERE ur.model_id = ? AND ur.model_type = 'users'
 		)
 		ORDER BY name
 	`
