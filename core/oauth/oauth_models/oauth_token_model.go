@@ -4,6 +4,7 @@ import (
 	"errors"
 	"semita/core/database/database_connections"
 	"semita/core/helpers"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -22,26 +23,34 @@ type OAuthToken struct {
 }
 
 // Tabla de tokens OAuth
-const oauthTokenTable = "oauth_tokens"
+const oauthTokenTable = "oauth_access_tokens"
 
 // GetTokenByAccessToken obtiene un token por su access_token
 func GetTokenByAccessToken(accessToken string) (*OAuthToken, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
-	query := `SELECT id, user_id, client_id, access_token, refresh_token, 
-              scopes, revoked, expires_at, created_at, updated_at 
+	query := `SELECT id, user_id, client_id, scopes, revoked, expires_at, created_at, updated_at 
               FROM ` + oauthTokenTable + ` 
-              WHERE access_token = ? AND revoked = 0`
+              WHERE id = ? AND revoked = 0`
 
 	var token OAuthToken
 	err := database.QueryRow(query, accessToken).Scan(
 		&token.ID, &token.UserID, &token.ClientID,
-		&token.AccessToken, &token.RefreshToken, &token.Scopes,
-		&token.Revoked, &token.ExpiresAt, &token.CreatedAt, &token.UpdatedAt)
+		&token.Scopes, &token.Revoked, &token.ExpiresAt, &token.CreatedAt, &token.UpdatedAt)
 
 	if err != nil {
 		return nil, err
+	}
+
+	// En Laravel Passport, el id es el access token
+	token.AccessToken = token.ID
+
+	// Obtener el refresh token
+	refreshQuery := `SELECT id FROM oauth_refresh_tokens WHERE access_token_id = ? AND revoked = 0`
+	err = database.QueryRow(refreshQuery, accessToken).Scan(&token.RefreshToken)
+	if err != nil {
+		token.RefreshToken = ""
 	}
 
 	return &token, nil
@@ -52,20 +61,32 @@ func GetTokenByRefreshToken(refreshToken string) (*OAuthToken, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
-	query := `SELECT id, user_id, client_id, access_token, refresh_token, 
-              scopes, revoked, expires_at, created_at, updated_at 
+	// Primero, buscar el refresh token en oauth_refresh_tokens
+	refreshQuery := `SELECT access_token_id FROM oauth_refresh_tokens 
+                     WHERE id = ? AND revoked = 0`
+	var accessTokenID string
+	err := database.QueryRow(refreshQuery, refreshToken).Scan(&accessTokenID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Ahora, buscar el access token en oauth_access_tokens
+	query := `SELECT id, user_id, client_id, scopes, revoked, expires_at, created_at, updated_at 
               FROM ` + oauthTokenTable + ` 
-              WHERE refresh_token = ? AND revoked = 0`
+              WHERE id = ? AND revoked = 0`
 
 	var token OAuthToken
-	err := database.QueryRow(query, refreshToken).Scan(
+	err = database.QueryRow(query, accessTokenID).Scan(
 		&token.ID, &token.UserID, &token.ClientID,
-		&token.AccessToken, &token.RefreshToken, &token.Scopes,
-		&token.Revoked, &token.ExpiresAt, &token.CreatedAt, &token.UpdatedAt)
+		&token.Scopes, &token.Revoked, &token.ExpiresAt, &token.CreatedAt, &token.UpdatedAt)
 
 	if err != nil {
 		return nil, err
 	}
+
+	// En Laravel Passport, el id es el access token
+	token.AccessToken = token.ID
+	token.RefreshToken = refreshToken
 
 	return &token, nil
 }
@@ -99,34 +120,43 @@ func CreateToken(userID string, clientID int64, scopes string) (*OAuthToken, err
 	}
 
 	// Generar token de acceso JWT
-	accessTokenString, expiresAt, err := helpers.GenerateJWTToken(userID, client.ClientID, accessTokenId, scopesSlice, false)
+	accessTokenString, expiresAt, err := helpers.GenerateJWTToken(userID, strconv.FormatInt(client.ClientID, 10), accessTokenId, scopesSlice, false)
 	if err != nil {
 		return nil, err
 	}
 
 	// Generar token de refresco JWT
-	refreshTokenString, _, err := helpers.GenerateJWTToken(userID, client.ClientID, refreshTokenId, scopesSlice, true)
+	refreshTokenString, _, err := helpers.GenerateJWTToken(userID, strconv.FormatInt(client.ClientID, 10), refreshTokenId, scopesSlice, true)
 	if err != nil {
 		return nil, err
 	}
 
-	// Insertar token en la base de datos
+	// Insertar access token en la base de datos
 	query := `INSERT INTO ` + oauthTokenTable + ` 
-              (user_id, client_id, access_token, refresh_token, scopes, revoked, expires_at) 
-              VALUES (?, ?, ?, ?, ?, 0, ?)`
+              (id, user_id, client_id, scopes, revoked, expires_at, created_at, updated_at) 
+              VALUES (?, ?, ?, ?, 0, ?, NOW(), NOW())`
 
-	result, err := database.Exec(query, userID, clientID, accessTokenString, refreshTokenString, scopes, expiresAt.Format("2006-01-02 15:04:05"))
+	_, err = database.Exec(query, accessTokenString, userID, clientID, scopes, expiresAt.Format("2006-01-02 15:04:05"))
 	if err != nil {
 		return nil, err
 	}
 
-	id, err := result.LastInsertId()
+	// Insertar refresh token
+	refreshQuery := `INSERT INTO oauth_refresh_tokens 
+                     (id, access_token_id, revoked, expires_at) 
+                     VALUES (?, ?, 0, ?)`
+	refreshExpiresAt := expiresAt.Add(30 * 24 * time.Hour) // Refresh token dura 30 días
+	_, err = database.Exec(refreshQuery, refreshTokenString, accessTokenString, refreshExpiresAt.Format("2006-01-02 15:04:05"))
 	if err != nil {
 		return nil, err
 	}
 
 	// Recuperar el token creado
-	return getTokenByID(database, id)
+	token, err := getTokenByID(database, accessTokenString)
+	if err != nil {
+		return nil, err
+	}
+	return token, nil
 }
 
 // RefreshToken renueva un token usando el refresh_token
@@ -166,12 +196,18 @@ func RevokeToken(accessToken string) error {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
-	_, err := database.Exec("UPDATE "+oauthTokenTable+" SET revoked = 1 WHERE access_token = ?", accessToken)
+	_, err := database.Exec("UPDATE "+oauthTokenTable+" SET revoked = 1 WHERE id = ?", accessToken)
+	if err != nil {
+		return err
+	}
+
+	// También revocar el refresh token
+	_, err = database.Exec("UPDATE oauth_refresh_tokens SET revoked = 1 WHERE access_token_id = ?", accessToken)
 	return err
 }
 
 // RevokeAllUserTokens revoca todos los tokens de un usuario
-func RevokeAllUserTokens(userID int64) error {
+func RevokeAllUserTokens(userID string) error {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
@@ -220,19 +256,28 @@ func (t *OAuthToken) HasScope(requiredScope string) bool {
 }
 
 // Función auxiliar para obtener un token por ID
-func getTokenByID(database database_connections.SQLAdapter, id int64) (*OAuthToken, error) {
-	query := `SELECT id, user_id, client_id, access_token, refresh_token, 
-              scopes, revoked, expires_at, created_at, updated_at 
+func getTokenByID(database database_connections.SQLAdapter, id string) (*OAuthToken, error) {
+	query := `SELECT id, user_id, client_id, scopes, revoked, expires_at, created_at, updated_at 
               FROM ` + oauthTokenTable + ` WHERE id = ?`
 
 	var token OAuthToken
 	err := database.QueryRow(query, id).Scan(
 		&token.ID, &token.UserID, &token.ClientID,
-		&token.AccessToken, &token.RefreshToken, &token.Scopes,
-		&token.Revoked, &token.ExpiresAt, &token.CreatedAt, &token.UpdatedAt)
+		&token.Scopes, &token.Revoked, &token.ExpiresAt, &token.CreatedAt, &token.UpdatedAt)
 
 	if err != nil {
 		return nil, err
+	}
+
+	// En Laravel Passport, el id es el access token
+	token.AccessToken = token.ID
+
+	// Obtener el refresh token de la tabla oauth_refresh_tokens
+	refreshQuery := `SELECT id FROM oauth_refresh_tokens WHERE access_token_id = ? AND revoked = 0`
+	err = database.QueryRow(refreshQuery, id).Scan(&token.RefreshToken)
+	if err != nil {
+		// Si no hay refresh token, dejar vacío
+		token.RefreshToken = ""
 	}
 
 	return &token, nil
