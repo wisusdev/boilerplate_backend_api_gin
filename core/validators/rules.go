@@ -36,8 +36,11 @@ func (r *RequiredRule) Validate(value interface{}, data map[string]interface{}) 
 		if valueOf.IsNil() {
 			return fmt.Errorf("the field is required")
 		}
+	case reflect.Struct:
+		// Para structs, si existe, se considera presente
+		return nil
 	default:
-		panic("unhandled default case")
+		return fmt.Errorf("the field is required")
 	}
 
 	return nil
@@ -341,7 +344,7 @@ func (r *AlphaRule) Validate(value interface{}, data map[string]interface{}) err
 		return fmt.Errorf("the field must be a string")
 	}
 
-	alphaRegex := regexp.MustCompile(`^[a-zA-ZÀ-ÿĀ-žА-я\u4e00-\u9fff]+$`)
+	alphaRegex := regexp.MustCompile(`^[a-zA-ZÀ-ÿĀ-žА-я\x{4e00}-\x{9fff}]+$`)
 	if !alphaRegex.MatchString(str) {
 		return fmt.Errorf("the field may only contain letters")
 	}
@@ -366,7 +369,7 @@ func (r *AlphaNumRule) Validate(value interface{}, data map[string]interface{}) 
 		return fmt.Errorf("the field must be a string")
 	}
 
-	alphaNumRegex := regexp.MustCompile(`^[a-zA-Z0-9À-ÿĀ-žА-я\u4e00-\u9fff]+$`)
+	alphaNumRegex := regexp.MustCompile(`^[a-zA-Z0-9À-ÿĀ-žА-я\x{4e00}-\x{9fff}]+$`)
 	if !alphaNumRegex.MatchString(str) {
 		return fmt.Errorf("the field may only contain letters and numbers")
 	}
@@ -547,4 +550,59 @@ func (r *StringRule) Validate(value interface{}, data map[string]interface{}) er
 	}
 
 	return nil
+}
+
+// SameRule valida que el campo sea igual a otro campo
+type SameRule struct {
+	OtherField string
+}
+
+func (r *SameRule) Name() string {
+	return "same"
+}
+
+func (r *SameRule) Validate(value interface{}, data map[string]interface{}) error {
+	if value == nil {
+		return fmt.Errorf("the field is required")
+	}
+
+	// Obtener el valor del otro campo usando notación de puntos
+	otherValue, exists := getNestedFieldValue(data, r.OtherField)
+	if !exists {
+		return fmt.Errorf("the field %s to compare with does not exist", r.OtherField)
+	}
+
+	// Comparar los valores
+	if fmt.Sprintf("%v", value) != fmt.Sprintf("%v", otherValue) {
+		return fmt.Errorf("the field must be the same as %s", r.OtherField)
+	}
+
+	return nil
+}
+
+// getNestedFieldValue obtiene un valor de un mapa usando notación de puntos
+func getNestedFieldValue(data map[string]interface{}, fieldPath string) (interface{}, bool) {
+	keys := strings.Split(fieldPath, ".")
+	current := data
+
+	for i, key := range keys {
+		value, exists := current[key]
+		if !exists {
+			return nil, false
+		}
+
+		// Si es el último key, retornar el valor
+		if i == len(keys)-1 {
+			return value, true
+		}
+
+		// Si no es el último key, necesitamos que sea un mapa para continuar
+		if nextMap, ok := value.(map[string]interface{}); ok {
+			current = nextMap
+		} else {
+			return nil, false
+		}
+	}
+
+	return nil, false
 }
