@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"semita/core/database/database_connections"
 	"semita/core/helpers"
+	"sort"
 	"strings"
 	"sync"
 
@@ -156,7 +157,15 @@ func (v *Validator) Validate(data interface{}) *ValidationResult {
 	v.mu.RLock()
 	defer v.mu.RUnlock()
 
-	for fieldName, fieldValidator := range v.rules {
+	// Obtener fields en orden alfabético para validación determinística
+	var fields []string
+	for field := range v.rules {
+		fields = append(fields, field)
+	}
+	sort.Strings(fields)
+
+	for _, fieldName := range fields {
+		fieldValidator := v.rules[fieldName]
 		// Obtener valor usando notación de puntos
 		value, exists := v.getNestedValue(dataMap, fieldName)
 
@@ -167,6 +176,10 @@ func (v *Validator) Validate(data interface{}) *ValidationResult {
 
 		// Validar reglas en orden, deteniéndose en el primer error
 		for _, rule := range fieldValidator.rules {
+			// Set DB for UniqueRule
+			if ur, ok := rule.(*UniqueRule); ok {
+				ur.DB = v.db
+			}
 			if err := rule.Validate(value, dataMap); err != nil {
 				validationError := &ValidationError{
 					Field:   fieldName,
@@ -295,7 +308,6 @@ func (f *FieldValidator) Unique(table, column string, except ...interface{}) *Fi
 		Table:  table,
 		Column: column,
 		Except: except,
-		DB:     f.validator.db,
 	})
 	return f
 }
@@ -388,6 +400,12 @@ func (f *FieldValidator) String() *FieldValidator {
 	return f
 }
 
+// Same valida que el campo sea el mismo que otro campo
+func (f *FieldValidator) Same(otherField string) *FieldValidator {
+	f.rules = append(f.rules, &SameRule{OtherField: otherField})
+	return f
+}
+
 // Field permite continuar con otro campo (para sintaxis fluida)
 func (f *FieldValidator) Field(name string) *FieldValidator {
 	return f.validator.Field(name)
@@ -407,7 +425,7 @@ func Validate(context *gin.Context, request Validatable) error {
 	}
 
 	// Bind de los datos del request
-	if err := context.ShouldBind(request); err != nil {
+	if err := context.ShouldBindJSON(request); err != nil {
 		context.JSON(422, ValidationResponse{
 			Errors: []ValidationErrorResponse{{
 				Status: "422",
@@ -428,27 +446,31 @@ func Validate(context *gin.Context, request Validatable) error {
 	result := validator.Validate(request)
 
 	if !result.Valid {
-		errors := make([]ValidationErrorResponse, len(result.Errors))
-		for i, err := range result.Errors {
-			errors[i] = ValidationErrorResponse{
+		if len(result.Errors) > 0 {
+			err := result.Errors[0]
+			var pointer string
+			if strings.Contains(err.Field, "data.attributes.") {
+				pointer = "/data/attributes/" + strings.TrimPrefix(err.Field, "data.attributes.")
+			} else {
+				pointer = "/data/" + strings.TrimPrefix(err.Field, "data.")
+			}
+			errors := []ValidationErrorResponse{{
 				Status: "422",
 				Title:  "Validation Error",
 				Detail: "The given data was invalid",
 				Source: ValidationErrorSource{
-					Pointer: fmt.Sprintf("/data/attributes/%s", strings.Replace(err.Field, "data.attributes.", "", 1)),
+					Pointer: pointer,
 				},
 				Meta: ValidationErrorMeta{
 					Field:   err.Field,
 					Rule:    err.Rule,
 					Message: err.Message,
 				},
-			}
+			}}
 
-			break // Detener al primer error encontrado
+			context.JSON(422, ValidationResponse{Errors: errors})
+			return fmt.Errorf("validation failed")
 		}
-
-		context.JSON(422, ValidationResponse{Errors: errors})
-		return fmt.Errorf("validation failed")
 	}
 
 	return nil
