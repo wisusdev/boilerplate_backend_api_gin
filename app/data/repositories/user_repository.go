@@ -6,8 +6,9 @@ import (
 	"semita/core/database/database_connections"
 	"semita/core/database/orm"
 	"semita/core/helpers"
-	"strconv"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 var userTable = "users"
@@ -117,24 +118,21 @@ func StoreUser(storeUser models.UserStruct) (user models.UserStruct, err error) 
 	var database = database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
+	// Generar UUID para el ID
+	id := uuid.New().String()
+	storeUser.ID = id
+
 	// Preparamos la consulta para insertar un nuevo usuario
-	var query = "INSERT INTO " + userTable + " (first_name, last_name, username, email, password, language) VALUES (?, ?, ?, ?, ?, 'es')"
+	var query = "INSERT INTO " + userTable + " (id, first_name, last_name, username, email, password, language, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, 'es', NOW(), NOW())"
 
 	// Ejecutamos la consulta con los datos del usuario
-	result, errorErr := database.Exec(query, storeUser.FirstName, storeUser.LastName, storeUser.Username, storeUser.Email, storeUser.Password)
+	_, errorErr := database.Exec(query, storeUser.ID, storeUser.FirstName, storeUser.LastName, storeUser.Username, storeUser.Email, storeUser.Password)
 	if errorErr != nil {
 		helpers.Logs("ERROR", "Error al guardar el usuario: "+errorErr.Error())
 		return models.UserStruct{}, errorErr
 	}
 
-	var lastInsertID int64
-	lastInsertID, err = result.LastInsertId()
-	if err != nil {
-		helpers.Logs("ERROR", "Error al obtener el ID del usuario insertado: "+err.Error())
-		return models.UserStruct{}, err
-	}
-
-	user, err = GetUserByID(strconv.FormatInt(lastInsertID, 10))
+	user, err = GetUserByID(storeUser.ID)
 	if err != nil {
 		helpers.Logs("ERROR", "Error al obtener el usuario recién insertado: "+err.Error())
 		return models.UserStruct{}, err
