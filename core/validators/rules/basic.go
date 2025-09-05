@@ -261,7 +261,7 @@ func (r *AlphaRule) Validate(value interface{}, data map[string]interface{}) err
 		return fmt.Errorf("the field must be a string")
 	}
 
-	alphaRegex := regexp.MustCompile(`^[a-zA-ZÀ-ÿĀ-žА-я\u4e00-\u9fff]+$`)
+	alphaRegex := regexp.MustCompile(`^[a-zA-ZÀ-ÿĀ-žА-я\x{4e00}-\x{9fff}]+$`)
 	if !alphaRegex.MatchString(str) {
 		return fmt.Errorf("the field may only contain letters")
 	}
@@ -286,7 +286,7 @@ func (r *AlphaNumRule) Validate(value interface{}, data map[string]interface{}) 
 		return fmt.Errorf("the field must be a string")
 	}
 
-	alphaNumRegex := regexp.MustCompile(`^[a-zA-Z0-9À-ÿĀ-žА-я\u4e00-\u9fff]+$`)
+	alphaNumRegex := regexp.MustCompile(`^[a-zA-Z0-9À-ÿĀ-žА-я\x{4e00}-\x{9fff}]+$`)
 	if !alphaNumRegex.MatchString(str) {
 		return fmt.Errorf("the field may only contain letters and numbers")
 	}
