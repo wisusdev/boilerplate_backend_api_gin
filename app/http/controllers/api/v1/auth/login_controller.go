@@ -40,6 +40,7 @@ func Login(context *gin.Context) {
 		return
 	}
 
+	// TODO: Obtener clientes OAuth y permitir seleccionar uno
 	clients, err := oauth_models.GetAllClients()
 	if err != nil || len(clients) == 0 {
 		context.JSON(http.StatusInternalServerError, gin.H{"errors": []gin.H{{
@@ -49,6 +50,7 @@ func Login(context *gin.Context) {
 		}}})
 		return
 	}
+
 	client := clients[0]
 	token, err := oauth_models.CreateToken(storedUser.ID, client.ClientID, "")
 	if err != nil {

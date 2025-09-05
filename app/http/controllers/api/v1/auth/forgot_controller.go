@@ -8,6 +8,7 @@ import (
 	"semita/app/notifications"
 	"semita/config"
 	"semita/core/helpers"
+	"semita/core/validators"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -16,14 +17,11 @@ import (
 
 func ForgotPassword(context *gin.Context) {
 	var req requests.ForgotPasswordRequest
-	if err := req.Validate(context); err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"errors": []gin.H{{
-			"status": "400",
-			"title":  "Validation Error",
-			"detail": err.Error(),
-		}}})
+
+	if err := validators.Validate(context, &req); err != nil {
 		return
 	}
+
 	user, err := providers.GetUserByEmail(req.Email)
 	if err != nil {
 		context.JSON(http.StatusOK, gin.H{"message": "Si el email existe, se enviará un enlace de recuperación"})
@@ -48,12 +46,7 @@ func ForgotPassword(context *gin.Context) {
 
 func ResetPassword(context *gin.Context) {
 	var req requests.ResetPasswordRequest
-	if err := req.Validate(context); err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"errors": []gin.H{{
-			"status": "400",
-			"title":  "Validation Error",
-			"detail": err.Error(),
-		}}})
+	if err := validators.Validate(context, &req); err != nil {
 		return
 	}
 
