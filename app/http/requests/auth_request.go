@@ -1,52 +1,105 @@
 package requests
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
+	"semita/core/validators"
 )
 
-var validate = validator.New()
-
-// RegisterRequest valida los datos de registro
-type RegisterRequest struct {
-	FirstName            string `form:"first_name" json:"first_name" binding:"required,min=2"`
-	LastName             string `form:"last_name" json:"last_name" binding:"required,min=2"`
-	Username             string `form:"username" json:"username" binding:"required,min=2,max=20,alphanum"`
-	Email                string `form:"email" json:"email" binding:"required,email"`
-	Password             string `form:"password" json:"password" binding:"required,min=6"`
-	PasswordConfirmation string `form:"password_confirmation" json:"password_confirmation" binding:"required,eqfield=Password"`
+// LoginRequest valida los datos de login - MIGRADO AL NUEVO SISTEMA
+type LoginRequestNew struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
-func (r *RegisterRequest) Validate(c *gin.Context) error {
-	if err := c.ShouldBind(r); err != nil {
-		return err
+func (r *LoginRequestNew) Rules() *validators.Validator {
+	validator := validators.New()
+	validator.Field("email").Required().Email()
+	validator.Field("password").Required().Min(6)
+	return validator
+}
+
+func (r *LoginRequestNew) Messages() map[string]string {
+	return map[string]string{
+		"email.required":    "El email es obligatorio",
+		"email.email":       "Debe ser un email válido",
+		"password.required": "La contraseña es obligatoria",
+		"password.min":      "La contraseña debe tener al menos 6 caracteres",
 	}
-	return validate.Struct(r)
 }
 
-// ForgotPasswordRequest valida el email para recuperar contraseña
+// RegisterRequest valida los datos de registro - MIGRADO AL NUEVO SISTEMA
+type RegisterRequestNew struct {
+	Name                 string `json:"name"`
+	Email                string `json:"email"`
+	Password             string `json:"password"`
+	PasswordConfirmation string `json:"password_confirmation"`
+}
+
+func (r *RegisterRequestNew) Rules() *validators.Validator {
+	validator := validators.New()
+	validator.Field("name").Required().Min(2).Max(50).Alpha()
+	validator.Field("email").Required().Email().Unique("users", "email")
+	validator.Field("password").Required().Min(6).Confirmed()
+	return validator
+}
+
+func (r *RegisterRequestNew) Messages() map[string]string {
+	return map[string]string{
+		"name.required":      "El nombre es obligatorio",
+		"name.min":           "El nombre debe tener al menos 2 caracteres",
+		"name.max":           "El nombre no puede tener más de 50 caracteres",
+		"name.alpha":         "El nombre solo puede contener letras",
+		"email.required":     "El email es obligatorio",
+		"email.email":        "Debe ser un email válido",
+		"email.unique":       "Este email ya está registrado",
+		"password.required":  "La contraseña es obligatoria",
+		"password.min":       "La contraseña debe tener al menos 6 caracteres",
+		"password.confirmed": "Las contraseñas no coinciden",
+	}
+}
+
+// ForgotPasswordRequest valida el email para recuperar contraseña - MIGRADO
 type ForgotPasswordRequest struct {
-	Email string `form:"email" json:"email" binding:"required,email"`
+	Email string `json:"email"`
 }
 
-func (r *ForgotPasswordRequest) Validate(c *gin.Context) error {
-	if err := c.ShouldBind(r); err != nil {
-		return err
+func (r *ForgotPasswordRequest) Rules() *validators.Validator {
+	validator := validators.New()
+	validator.Field("email").Required().Email().Exists("users", "email")
+	return validator
+}
+
+func (r *ForgotPasswordRequest) Messages() map[string]string {
+	return map[string]string{
+		"email.required": "El email es obligatorio",
+		"email.email":    "Debe ser un email válido",
+		"email.exists":   "No encontramos una cuenta con este email",
 	}
-	return validate.Struct(r)
 }
 
-// ResetPasswordRequest valida el reseteo de contraseña
+// ResetPasswordRequest valida el reseteo de contraseña - MIGRADO
 type ResetPasswordRequest struct {
-	Token                string `form:"token" json:"token" binding:"required"`
-	Email                string `form:"email" json:"email" binding:"required,email"`
-	Password             string `form:"password" json:"password" binding:"required,min=6"`
-	PasswordConfirmation string `form:"password_confirmation" json:"password_confirmation" binding:"required,eqfield=Password"`
+	Token                string `json:"token"`
+	Email                string `json:"email"`
+	Password             string `json:"password"`
+	PasswordConfirmation string `json:"password_confirmation"`
 }
 
-func (r *ResetPasswordRequest) Validate(c *gin.Context) error {
-	if err := c.ShouldBind(r); err != nil {
-		return err
+func (r *ResetPasswordRequest) Rules() *validators.Validator {
+	validator := validators.New()
+	validator.Field("token").Required()
+	validator.Field("email").Required().Email().Exists("users", "email")
+	validator.Field("password").Required().Min(6).Confirmed()
+	return validator
+}
+
+func (r *ResetPasswordRequest) Messages() map[string]string {
+	return map[string]string{
+		"token.required":     "El token es obligatorio",
+		"email.required":     "El email es obligatorio",
+		"email.email":        "Debe ser un email válido",
+		"email.exists":       "No encontramos una cuenta con este email",
+		"password.required":  "La contraseña es obligatoria",
+		"password.min":       "La contraseña debe tener al menos 6 caracteres",
+		"password.confirmed": "Las contraseñas no coinciden",
 	}
-	return validate.Struct(r)
 }
