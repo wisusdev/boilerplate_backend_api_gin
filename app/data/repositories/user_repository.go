@@ -180,7 +180,7 @@ func GetUserByEmail(email string) (user models.UserStruct, err error) {
 	return user, nil
 }
 
-func UpdateUser(user models.UserStruct) (err error) {
+func UpdateUserPassword(user models.UserStruct) (err error) {
 	// Instanciamos la conexión a la base de datos
 	var database = database_connections.DatabaseConnectSQL()
 
@@ -188,10 +188,10 @@ func UpdateUser(user models.UserStruct) (err error) {
 	defer database.Close()
 
 	// Preparamos la consulta para actualizar un usuario por su ID
-	var query = "UPDATE " + userTable + " SET first_name = ?, email = ?, password = ? WHERE id = ?"
+	var query = "UPDATE " + userTable + " SET password = ? WHERE id = ?"
 
 	// Ejecutamos la consulta con los datos del usuario
-	_, err = database.Exec(query, user.FirstName, user.Email, user.Password, user.ID)
+	_, err = database.Exec(query, user.Password, user.ID)
 
 	// Si hubo un error al ejecutar la consulta, retornamos el error
 	if err != nil {
