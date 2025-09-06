@@ -33,6 +33,11 @@ func GetTokenByAccessToken(accessToken string) (*OAuthToken, error) {
 		return nil, err
 	}
 
+	return GetTokenByJTI(claims.JTI, accessToken)
+}
+
+// GetTokenByJTI obtiene un token por su JTI (evita doble validación de JWT)
+func GetTokenByJTI(jti string, fullJWT string) (*OAuthToken, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
@@ -42,7 +47,7 @@ func GetTokenByAccessToken(accessToken string) (*OAuthToken, error) {
               WHERE id = ? AND revoked = 0`
 
 	var token OAuthToken
-	err = database.QueryRow(query, claims.JTI).Scan(
+	err := database.QueryRow(query, jti).Scan(
 		&token.ID, &token.UserID, &token.ClientID,
 		&token.Scopes, &token.Revoked, &token.ExpiresAt, &token.CreatedAt, &token.UpdatedAt)
 
@@ -51,11 +56,11 @@ func GetTokenByAccessToken(accessToken string) (*OAuthToken, error) {
 	}
 
 	// Asignar el JWT completo al campo AccessToken para devolverlo
-	token.AccessToken = accessToken
+	token.AccessToken = fullJWT
 
 	// Obtener el refresh token usando el token ID (no el JWT)
 	refreshQuery := `SELECT id FROM oauth_refresh_tokens WHERE access_token_id = ? AND revoked = 0`
-	err = database.QueryRow(refreshQuery, claims.JTI).Scan(&token.RefreshToken)
+	err = database.QueryRow(refreshQuery, jti).Scan(&token.RefreshToken)
 	if err != nil {
 		token.RefreshToken = ""
 	}

@@ -89,6 +89,7 @@ func ResetPassword(context *gin.Context) {
 
 	user, err := providers.GetUserByEmail(passwordResetByToken.Email)
 	if err != nil {
+		helpers.Logs("ERROR", "Error recuperando usuario: "+err.Error())
 		context.JSON(http.StatusBadRequest, gin.H{"errors": []gin.H{{
 			"status": "400",
 			"title":  "User Not Found",

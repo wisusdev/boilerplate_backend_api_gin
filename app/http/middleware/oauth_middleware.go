@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
 	"semita/core/helpers"
 	"semita/core/oauth/oauth_models"
@@ -34,10 +35,17 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		tokenString := parts[1]
 
+		// Debug: Log token info
+		tokenStart := tokenString
+		if len(tokenString) > 50 {
+			tokenStart = tokenString[:50]
+		}
+		helpers.Logs("DEBUG", fmt.Sprintf("Received token length: %d, starts with: %s", len(tokenString), tokenStart))
+
 		// Validar el token JWT
 		claims, err := helpers.ValidateJWTToken(tokenString)
 		if err != nil {
-			helpers.Logs("ERROR", "Invalid token")
+			helpers.Logs("ERROR", "Invalid token: "+err.Error())
 			context.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"error": "Token inválido",
 			})
@@ -45,9 +53,11 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		// Verificar si el token existe en la base de datos y no está revocado
-		token, err := oauth_models.GetTokenByAccessToken(tokenString)
+		// Usamos GetTokenByJTI para evitar doble validación del JWT
+		token, err := oauth_models.GetTokenByJTI(claims.JTI, tokenString)
 
 		if err != nil || token.Revoked {
+			helpers.Logs("ERROR", "Token revoked or not found in DB: "+err.Error())
 			context.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"error": "Token revocado o inválido",
 			})
