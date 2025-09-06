@@ -5,6 +5,7 @@ import (
 	userProviders "semita/app/data/providers"
 	"semita/app/http/requests"
 	"semita/app/http/resources"
+	"semita/core/helpers"
 	"semita/core/oauth/oauth_models"
 	rpProviders "semita/core/roles_and_permissions/providers"
 	"semita/core/validators"
@@ -54,6 +55,7 @@ func Login(context *gin.Context) {
 	client := clients[0]
 	token, err := oauth_models.CreateToken(storedUser.ID, client.ClientID, "")
 	if err != nil {
+		helpers.Logs("ERROR", "Error creating OAuth token: "+err.Error())
 		context.JSON(http.StatusInternalServerError, gin.H{"errors": []gin.H{{
 			"status": "500",
 			"title":  "Server Error",
