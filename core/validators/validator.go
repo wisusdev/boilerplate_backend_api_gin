@@ -101,73 +101,73 @@ func Default() *Validator {
 }
 
 // SetDatabase establece la conexión a la base de datos para validaciones
-func (v *Validator) SetDatabase(db database_connections.SQLAdapter) *Validator {
-	v.mu.Lock()
-	defer v.mu.Unlock()
-	v.db = db
-	return v
+func (validator *Validator) SetDatabase(db database_connections.SQLAdapter) *Validator {
+	validator.mu.Lock()
+	defer validator.mu.Unlock()
+	validator.db = db
+	return validator
 }
 
 // SetLanguage establece el idioma para las traducciones
-func (v *Validator) SetLanguage(lang string) *Validator {
-	v.mu.Lock()
-	defer v.mu.Unlock()
-	v.language = lang
-	return v
+func (validator *Validator) SetLanguage(lang string) *Validator {
+	validator.mu.Lock()
+	defer validator.mu.Unlock()
+	validator.language = lang
+	return validator
 }
 
 // Field define las reglas para un campo específico
-func (v *Validator) Field(name string) *FieldValidator {
-	v.mu.Lock()
-	defer v.mu.Unlock()
+func (validator *Validator) Field(name string) *FieldValidator {
+	validator.mu.Lock()
+	defer validator.mu.Unlock()
 
-	if validator, exists := v.rules[name]; exists {
+	if validator, exists := validator.rules[name]; exists {
 		return validator
 	}
 
 	fieldValidator := &FieldValidator{
 		fieldName: name,
 		rules:     make([]Rule, 0),
-		validator: v,
+		validator: validator,
 	}
-	v.rules[name] = fieldValidator
+	validator.rules[name] = fieldValidator
 	return fieldValidator
 }
 
 // Messages establece mensajes personalizados
-func (v *Validator) Messages(messages map[string]string) *Validator {
-	v.mu.Lock()
-	defer v.mu.Unlock()
+func (validator *Validator) Messages(messages map[string]string) *Validator {
+	validator.mu.Lock()
+	defer validator.mu.Unlock()
 	for key, message := range messages {
-		v.messages[key] = message
+		validator.messages[key] = message
 	}
-	return v
+	return validator
 }
 
 // Validate valida los datos contra las reglas definidas
-func (v *Validator) Validate(data interface{}) *ValidationResult {
+func (validator *Validator) Validate(data interface{}) *ValidationResult {
 	result := &ValidationResult{
 		Valid:  true,
 		Errors: make([]*ValidationError, 0),
 	}
 
 	// Convertir data a map para facilitar el acceso
-	dataMap := v.toMap(data)
+	dataMap := validator.toMap(data)
 
-	v.mu.RLock()
-	defer v.mu.RUnlock()
+	validator.mu.RLock()
+	defer validator.mu.RUnlock()
 
 	// Obtener fields en orden alfabético para validación determinística
 	var fields []string
-	for field := range v.rules {
+	for field := range validator.rules {
 		fields = append(fields, field)
 	}
 	sort.Strings(fields)
 
 	for _, fieldName := range fields {
-		fieldValidator := v.rules[fieldName]
+		fieldValidator := validator.rules[fieldName]
 		// Obtener valor usando notación de puntos
-		value, exists := v.getNestedValue(dataMap, fieldName)
+		value, exists := validator.getNestedValue(dataMap, fieldName)
 
 		// Si el campo tiene la regla "sometimes" y no existe, omitir validación
 		if fieldValidator.sometimes && !exists {
@@ -178,14 +178,14 @@ func (v *Validator) Validate(data interface{}) *ValidationResult {
 		for _, rule := range fieldValidator.rules {
 			// Set DB for UniqueRule
 			if ur, ok := rule.(*UniqueRule); ok {
-				ur.DB = v.db
+				ur.DB = validator.db
 			}
 			if err := rule.Validate(value, dataMap); err != nil {
 				validationError := &ValidationError{
 					Field:   fieldName,
 					Rule:    rule.Name(),
 					Value:   value,
-					Message: v.getMessage(fieldName, rule.Name(), err.Error()),
+					Message: validator.getMessage(fieldName, rule.Name(), err.Error()),
 				}
 				result.Errors = append(result.Errors, validationError)
 				result.Valid = false
@@ -199,7 +199,7 @@ func (v *Validator) Validate(data interface{}) *ValidationResult {
 }
 
 // getNestedValue obtiene un valor de un mapa usando notación de puntos
-func (v *Validator) getNestedValue(data map[string]interface{}, fieldPath string) (interface{}, bool) {
+func (validator *Validator) getNestedValue(data map[string]interface{}, fieldPath string) (interface{}, bool) {
 	keys := strings.Split(fieldPath, ".")
 	current := data
 
@@ -226,21 +226,21 @@ func (v *Validator) getNestedValue(data map[string]interface{}, fieldPath string
 }
 
 // getMessage obtiene el mensaje de error personalizado usando el sistema de traducción
-func (v *Validator) getMessage(field, rule, defaultMessage string) string {
+func (validator *Validator) getMessage(field, rule, defaultMessage string) string {
 	// Buscar mensaje específico para campo.regla en mensajes personalizados
 	key := fmt.Sprintf("%s.%s", field, rule)
-	if message, exists := v.messages[key]; exists {
+	if message, exists := validator.messages[key]; exists {
 		return strings.ReplaceAll(message, ":field", field)
 	}
 
 	// Buscar mensaje genérico para la regla en mensajes personalizados
-	if message, exists := v.messages[rule]; exists {
+	if message, exists := validator.messages[rule]; exists {
 		return strings.ReplaceAll(message, ":field", field)
 	}
 
 	// Usar el sistema de traducción existente
 	translationKey := fmt.Sprintf("validation_%s", rule)
-	translatedMessage := helpers.Translate(translationKey, v.language)
+	translatedMessage := helpers.Translate(translationKey, validator.language)
 
 	// Si encontró una traducción (no devolvió la clave), usarla
 	if translatedMessage != translationKey {
@@ -252,7 +252,7 @@ func (v *Validator) getMessage(field, rule, defaultMessage string) string {
 }
 
 // toMap convierte una estructura a un mapa
-func (v *Validator) toMap(data interface{}) map[string]interface{} {
+func (validator *Validator) toMap(data interface{}) map[string]interface{} {
 	result := make(map[string]interface{})
 
 	// Si ya es un mapa, devolverlo
@@ -426,6 +426,7 @@ func Validate(context *gin.Context, request Validatable) error {
 
 	// Bind de los datos del request
 	if err := context.ShouldBindJSON(request); err != nil {
+		helpers.Logs("error", "Validation bind error: "+err.Error())
 		context.JSON(422, ValidationResponse{
 			Errors: []ValidationErrorResponse{{
 				Status: "422",
@@ -448,6 +449,7 @@ func Validate(context *gin.Context, request Validatable) error {
 	if !result.Valid {
 		if len(result.Errors) > 0 {
 			err := result.Errors[0]
+			helpers.Logs("error", "Validation error: "+err.Message)
 			var pointer string
 			if strings.Contains(err.Field, "data.attributes.") {
 				pointer = "/data/attributes/" + strings.TrimPrefix(err.Field, "data.attributes.")
