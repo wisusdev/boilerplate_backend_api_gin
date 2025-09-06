@@ -15,6 +15,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		authHeader := context.GetHeader("Authorization")
 
 		if authHeader == "" {
+			helpers.Logs("ERROR", "Authorization header is required")
 			context.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"error": "Token no proporcionado",
 			})
@@ -24,6 +25,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		// El token debe tener el formato "Bearer {token}"
 		parts := strings.SplitN(authHeader, " ", 2)
 		if len(parts) != 2 || parts[0] != "Bearer" {
+			helpers.Logs("ERROR", "Invalid token format")
 			context.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"error": "Formato de token inválido",
 			})
@@ -35,6 +37,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		// Validar el token JWT
 		claims, err := helpers.ValidateJWTToken(tokenString)
 		if err != nil {
+			helpers.Logs("ERROR", "Invalid token")
 			context.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"error": "Token inválido",
 			})
@@ -53,8 +56,8 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		// Almacenar información del token para uso posterior en controladores
 		context.Set("user_id", claims.Subject)
-		context.Set("client_id", claims.Audience[0])
-		context.Set("token_id", claims.ID)
+		context.Set("client_id", claims.Audience)
+		context.Set("token_id", claims.JTI)
 		context.Set("token_scopes", claims.Scopes)
 		context.Set("token", token)
 
