@@ -15,15 +15,26 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func ForgotPassword(context *gin.Context) {
-	var req requests.ForgotPasswordRequest
+type ForgotResponseStruct struct {
+	Data struct {
+		Type       string `json:"type"`
+		Attributes struct {
+			Status  string
+			Message string
+		} `json:"attributes"`
+	} `json:"data"`
+}
 
-	if err := validators.Validate(context, &req); err != nil {
+func ForgotPassword(context *gin.Context) {
+	var request requests.ForgotPasswordRequest
+
+	if err := validators.Validate(context, &request); err != nil {
 		return
 	}
 
-	user, err := providers.GetUserByEmail(req.Email)
+	user, err := providers.GetUserByEmail(request.Data.Attributes.Email)
 	if err != nil {
+		helpers.Logs("ERROR", "Error recuperando usuario: "+err.Error())
 		context.JSON(http.StatusOK, gin.H{"message": "Si el email existe, se enviará un enlace de recuperación"})
 		return
 	}
@@ -41,17 +52,23 @@ func ForgotPassword(context *gin.Context) {
 		}}})
 		return
 	}
-	context.JSON(http.StatusOK, gin.H{"message": "Si el email existe, se enviará un enlace de recuperación"})
+
+	response := ForgotResponseStruct{}
+	response.Data.Type = "users"
+	response.Data.Attributes.Status = "success"
+	response.Data.Attributes.Message = "message.resetPasswordEmailSent"
+
+	context.JSON(http.StatusOK, response)
 }
 
 func ResetPassword(context *gin.Context) {
-	var req requests.ResetPasswordRequest
-	if err := validators.Validate(context, &req); err != nil {
+	var request requests.ResetPasswordRequest
+
+	if err := validators.Validate(context, &request); err != nil {
 		return
 	}
-
-	pr, err := providers.GetPasswordResetByToken(req.Token)
-	if err != nil {
+	passwordResetByToken, errorGetPasswordResetByToken := providers.GetPasswordResetByToken(request.Data.Attributes.Token)
+	if errorGetPasswordResetByToken != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"errors": []gin.H{{
 			"status": "400",
 			"title":  "Invalid Token",
@@ -60,8 +77,8 @@ func ResetPassword(context *gin.Context) {
 		return
 	}
 
-	if time.Since(pr.CreatedAt) > 2*time.Hour {
-		_ = providers.DeletePasswordReset(req.Token)
+	if time.Since(passwordResetByToken.CreatedAt) > 2*time.Hour {
+		_ = providers.DeletePasswordReset(request.Data.Attributes.Token)
 		context.JSON(http.StatusBadRequest, gin.H{"errors": []gin.H{{
 			"status": "400",
 			"title":  "Token Expired",
@@ -70,7 +87,7 @@ func ResetPassword(context *gin.Context) {
 		return
 	}
 
-	user, err := providers.GetUserByEmail(pr.Email)
+	user, err := providers.GetUserByEmail(passwordResetByToken.Email)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"errors": []gin.H{{
 			"status": "400",
@@ -80,7 +97,7 @@ func ResetPassword(context *gin.Context) {
 		return
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(request.Data.Attributes.Password), bcrypt.DefaultCost)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"errors": []gin.H{{
 			"status": "500",
@@ -91,7 +108,7 @@ func ResetPassword(context *gin.Context) {
 	}
 
 	update := models.UserStruct{ID: user.ID, Password: string(hashedPassword)}
-	err = providers.UpdateUser(update)
+	err = providers.UpdateUserPassword(update)
 
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"errors": []gin.H{{
@@ -102,6 +119,12 @@ func ResetPassword(context *gin.Context) {
 		return
 	}
 
-	_ = providers.DeletePasswordReset(req.Token)
-	context.JSON(http.StatusOK, gin.H{"message": "Contraseña restablecida"})
+	_ = providers.DeletePasswordReset(request.Data.Attributes.Token)
+
+	var response ForgotResponseStruct = ForgotResponseStruct{}
+	response.Data.Type = "users"
+	response.Data.Attributes.Status = "success"
+	response.Data.Attributes.Message = "message.passwordResetSuccess"
+
+	context.JSON(http.StatusOK, response)
 }
