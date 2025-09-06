@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"fmt"
 	"net/http"
 	"semita/core/oauth/oauth_models"
 
@@ -18,9 +17,7 @@ func Logout(context *gin.Context) {
 		return
 	}
 
-	fmt.Println("Token encontrado:", tokenObj)
 	// Revoke the token in the database
-
 	var token, ok = tokenObj.(*oauth_models.OAuthToken)
 	if !ok {
 		context.JSON(http.StatusBadRequest, gin.H{
