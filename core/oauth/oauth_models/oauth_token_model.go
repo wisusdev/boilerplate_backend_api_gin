@@ -25,17 +25,24 @@ type OAuthToken struct {
 // Tabla de tokens OAuth
 const oauthTokenTable = "oauth_access_tokens"
 
-// GetTokenByAccessToken obtiene un token por su access_token
+// GetTokenByAccessToken obtiene un token por su access_token JWT
 func GetTokenByAccessToken(accessToken string) (*OAuthToken, error) {
+	// Primero, validar el JWT y extraer el jti (token ID)
+	claims, err := helpers.ValidateJWTToken(accessToken)
+	if err != nil {
+		return nil, err
+	}
+
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
+	// Buscar por el jti (token ID) en la base de datos
 	query := `SELECT id, user_id, client_id, scopes, revoked, expires_at, created_at, updated_at 
               FROM ` + oauthTokenTable + ` 
               WHERE id = ? AND revoked = 0`
 
 	var token OAuthToken
-	err := database.QueryRow(query, accessToken).Scan(
+	err = database.QueryRow(query, claims.JTI).Scan(
 		&token.ID, &token.UserID, &token.ClientID,
 		&token.Scopes, &token.Revoked, &token.ExpiresAt, &token.CreatedAt, &token.UpdatedAt)
 
@@ -43,12 +50,12 @@ func GetTokenByAccessToken(accessToken string) (*OAuthToken, error) {
 		return nil, err
 	}
 
-	// En Laravel Passport, el id es el access token
-	token.AccessToken = token.ID
+	// Asignar el JWT completo al campo AccessToken para devolverlo
+	token.AccessToken = accessToken
 
-	// Obtener el refresh token
+	// Obtener el refresh token usando el token ID (no el JWT)
 	refreshQuery := `SELECT id FROM oauth_refresh_tokens WHERE access_token_id = ? AND revoked = 0`
-	err = database.QueryRow(refreshQuery, accessToken).Scan(&token.RefreshToken)
+	err = database.QueryRow(refreshQuery, claims.JTI).Scan(&token.RefreshToken)
 	if err != nil {
 		token.RefreshToken = ""
 	}
@@ -56,21 +63,27 @@ func GetTokenByAccessToken(accessToken string) (*OAuthToken, error) {
 	return &token, nil
 }
 
-// GetTokenByRefreshToken obtiene un token por su refresh_token
+// GetTokenByRefreshToken obtiene un token por su refresh_token JWT
 func GetTokenByRefreshToken(refreshToken string) (*OAuthToken, error) {
-	database := database_connections.DatabaseConnectSQL()
-	defer database.Close()
-
-	// Primero, buscar el refresh token en oauth_refresh_tokens
-	refreshQuery := `SELECT access_token_id FROM oauth_refresh_tokens 
-                     WHERE id = ? AND revoked = 0`
-	var accessTokenID string
-	err := database.QueryRow(refreshQuery, refreshToken).Scan(&accessTokenID)
+	// Primero, validar el refresh token JWT y extraer el jti
+	refreshClaims, err := helpers.ValidateJWTToken(refreshToken)
 	if err != nil {
 		return nil, err
 	}
 
-	// Ahora, buscar el access token en oauth_access_tokens
+	database := database_connections.DatabaseConnectSQL()
+	defer database.Close()
+
+	// Buscar el refresh token por su jti en oauth_refresh_tokens
+	refreshQuery := `SELECT access_token_id FROM oauth_refresh_tokens 
+                     WHERE id = ? AND revoked = 0`
+	var accessTokenID string
+	err = database.QueryRow(refreshQuery, refreshClaims.JTI).Scan(&accessTokenID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Ahora, buscar el access token en oauth_access_tokens usando el access_token_id
 	query := `SELECT id, user_id, client_id, scopes, revoked, expires_at, created_at, updated_at 
               FROM ` + oauthTokenTable + ` 
               WHERE id = ? AND revoked = 0`
@@ -84,8 +97,18 @@ func GetTokenByRefreshToken(refreshToken string) (*OAuthToken, error) {
 		return nil, err
 	}
 
-	// En Laravel Passport, el id es el access token
-	token.AccessToken = token.ID
+	// Generar un nuevo JWT para el access token usando el ID almacenado
+	scopesSlice := []string{}
+	if token.Scopes != "" {
+		scopesSlice = strings.Split(token.Scopes, ",")
+	}
+
+	newAccessTokenJWT, _, err := helpers.GenerateJWTToken(token.UserID, strconv.FormatInt(token.ClientID, 10), token.ID, scopesSlice, false)
+	if err != nil {
+		return nil, err
+	}
+
+	token.AccessToken = newAccessTokenJWT
 	token.RefreshToken = refreshToken
 
 	return &token, nil
@@ -102,13 +125,13 @@ func CreateToken(userID string, clientID int64, scopes string) (*OAuthToken, err
 		return nil, err
 	}
 
-	// Generar identificadores únicos para los tokens
-	accessTokenId, err := helpers.GenerateRandomToken(16)
+	// Generar identificadores únicos para los tokens (80 caracteres como Laravel Passport)
+	accessTokenId, err := helpers.GenerateRandomToken(0) // El parámetro no se usa
 	if err != nil {
 		return nil, err
 	}
 
-	refreshTokenId, err := helpers.GenerateRandomToken(16)
+	refreshTokenId, err := helpers.GenerateRandomToken(0) // El parámetro no se usa
 	if err != nil {
 		return nil, err
 	}
@@ -132,11 +155,13 @@ func CreateToken(userID string, clientID int64, scopes string) (*OAuthToken, err
 	}
 
 	// Insertar access token en la base de datos
+	// IMPORTANTE: En Laravel Passport, el 'id' es el identificador único (accessTokenId),
+	// NO el JWT completo. El JWT se devuelve al cliente pero no se guarda en la DB.
 	query := `INSERT INTO ` + oauthTokenTable + ` 
               (id, user_id, client_id, scopes, revoked, expires_at, created_at, updated_at) 
               VALUES (?, ?, ?, ?, 0, ?, NOW(), NOW())`
 
-	_, err = database.Exec(query, accessTokenString, userID, clientID, scopes, expiresAt.Format("2006-01-02 15:04:05"))
+	_, err = database.Exec(query, accessTokenId, userID, clientID, scopes, expiresAt.Format("2006-01-02 15:04:05"))
 	if err != nil {
 		return nil, err
 	}
@@ -146,16 +171,21 @@ func CreateToken(userID string, clientID int64, scopes string) (*OAuthToken, err
                      (id, access_token_id, revoked, expires_at) 
                      VALUES (?, ?, 0, ?)`
 	refreshExpiresAt := expiresAt.Add(30 * 24 * time.Hour) // Refresh token dura 30 días
-	_, err = database.Exec(refreshQuery, refreshTokenString, accessTokenString, refreshExpiresAt.Format("2006-01-02 15:04:05"))
+	_, err = database.Exec(refreshQuery, refreshTokenId, accessTokenId, refreshExpiresAt.Format("2006-01-02 15:04:05"))
 	if err != nil {
 		return nil, err
 	}
 
-	// Recuperar el token creado
-	token, err := getTokenByID(database, accessTokenString)
+	// Recuperar el token creado y asignar el JWT completo
+	token, err := getTokenByID(database, accessTokenId)
 	if err != nil {
 		return nil, err
 	}
+
+	// Asignar los JWTs generados al objeto token
+	token.AccessToken = accessTokenString
+	token.RefreshToken = refreshTokenString
+
 	return token, nil
 }
 
