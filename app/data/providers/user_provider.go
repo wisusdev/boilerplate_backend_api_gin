@@ -34,9 +34,9 @@ func GetUserByEmail(email string) (models.UserStruct, error) {
 	return repositories.GetUserByEmail(email)
 }
 
-// UpdateUser actualiza un usuario a través del repositorio
-func UpdateUser(user models.UserStruct) error {
-	return repositories.UpdateUser(user)
+// UpdateUserPassword actualiza un usuario a través del repositorio
+func UpdateUserPassword(user models.UserStruct) error {
+	return repositories.UpdateUserPassword(user)
 }
 
 // DeleteUser elimina un usuario a través del repositorio
