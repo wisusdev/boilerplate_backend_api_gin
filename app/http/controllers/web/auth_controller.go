@@ -274,7 +274,6 @@ func AuthResetPasswordPost(context *gin.Context) {
 	}
 
 	update := models.UserStruct{
-		ID:        user.ID,
 		FirstName: user.FirstName,
 		LastName:  user.LastName,
 		Username:  user.Username,

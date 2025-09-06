@@ -24,6 +24,10 @@ func StoreUser(storeUser models.UserStruct) (user models.UserStruct, err error) 
 	return repositories.StoreUser(storeUser)
 }
 
+func UpdateUser(user models.UserStruct) (err error) {
+	return repositories.UpdateUser(user)
+}
+
 // GetUserByID obtiene un usuario por ID a través del repositorio
 func GetUserByID(id string) (models.UserStruct, error) {
 	return repositories.GetUserByID(id)

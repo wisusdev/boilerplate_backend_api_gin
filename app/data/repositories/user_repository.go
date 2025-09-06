@@ -141,6 +141,27 @@ func StoreUser(storeUser models.UserStruct) (user models.UserStruct, err error) 
 	return user, nil
 }
 
+func UpdateUser(user models.UserStruct) (err error) {
+	// Instanciamos la conexión a la base de datos
+	var database = database_connections.DatabaseConnectSQL()
+
+	// Aseguramos que la conexión se cierre al final de la función
+	defer database.Close()
+
+	// Preparamos la consulta para actualizar un usuario por su ID
+	var query = "UPDATE " + userTable + " SET first_name = ?, last_name = ?, username = ?, avatar = ?, language = ?, email = ?, updated_at = NOW() WHERE id = ?"
+
+	// Ejecutamos la consulta con los datos del usuario
+	_, err = database.Exec(query, user.FirstName, user.LastName, user.Username, user.Avatar, user.Language, user.Email, user.ID)
+
+	// Si hubo un error al ejecutar la consulta, retornamos el error
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func GetUserByID(id string) (user models.UserStruct, err error) {
 	// Instanciamos la conexión a la base de datos
 	var database = database_connections.DatabaseConnectSQL()
