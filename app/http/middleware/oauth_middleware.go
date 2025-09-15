@@ -23,6 +23,19 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
+		acceptTypeHeader := "application/vnd.api+json"
+
+		acceptHeader := context.GetHeader("Accept")
+		contentTypeHeader := context.GetHeader("Content-Type")
+
+		if !strings.Contains(acceptHeader, acceptTypeHeader) && !strings.Contains(contentTypeHeader, acceptTypeHeader) {
+			helpers.Logs("ERROR", fmt.Sprintf("Accept or Content-Type header must be %s", acceptTypeHeader))
+			context.AbortWithStatusJSON(http.StatusNotAcceptable, gin.H{
+				"error": fmt.Sprintf("El encabezado Accept o Content-Type debe ser %s", acceptTypeHeader),
+			})
+			return
+		}
+
 		// El token debe tener el formato "Bearer {token}"
 		parts := strings.SplitN(authHeader, " ", 2)
 		if len(parts) != 2 || parts[0] != "Bearer" {
