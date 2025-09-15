@@ -14,15 +14,19 @@ func Api(router *gin.RouterGroup) {
 	permissionController := &base.PermissionController{}
 	userPermissionController := &base.UserPermissionController{}
 
-	// Auth routes
-	router.POST("/auth/login", auth.Login)
-	router.POST("/auth/register", auth.Register)
-	router.POST("/auth/logout", middleware.AuthMiddleware(), auth.Logout)
-	router.POST("/auth/forgot-password", auth.ForgotPassword)
-	router.POST("/auth/reset-password", auth.ResetPassword)
-	router.POST("/auth/email/resend", middleware.AuthMiddleware(), auth.ResendEmailVerify)
-	router.GET("/auth/email/verify/:id/:hash", auth.VerifyEmail)
-	router.POST("/auth/refresh-token", middleware.AuthMiddleware(), auth.RefreshToken)
+	authRouter := router.Group("/auth")
+	authRouter.Use(middleware.ValidateJSONAPIDocument())
+	{
+		// Auth routes
+		authRouter.POST("/login", auth.Login)
+		authRouter.POST("/register", auth.Register)
+		authRouter.POST("/logout", middleware.AuthMiddleware(), auth.Logout)
+		authRouter.POST("/forgot-password", auth.ForgotPassword)
+		authRouter.POST("/reset-password", auth.ResetPassword)
+		authRouter.POST("/email/resend", middleware.AuthMiddleware(), auth.ResendEmailVerify)
+		authRouter.GET("/email/verify/:id/:hash", auth.VerifyEmail)
+		authRouter.POST("/refresh-token", middleware.AuthMiddleware(), auth.RefreshToken)
+	}
 
 	// Rutas protegidas con autenticación
 	protected := router.Group("/")
