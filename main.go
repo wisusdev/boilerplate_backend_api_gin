@@ -12,6 +12,8 @@ import (
 	"semita/core/internationalization"
 	"semita/routes"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -33,12 +35,13 @@ func StartServer() {
 	// Cargar variables de entorno
 	var appUrl = config.AppConfig().Url
 
-	// Inicializar el enrutador Gin
-	router := routes.Web()
+	router := gin.Default()
 
-	// Montar rutas API
-	apiGroup := router.Group("/api/v1")
-	routes.Api(apiGroup)
+	// Rutas web
+	routes.Web(router.Group("/"))
+
+	// Rutas API
+	routes.Api(router.Group("/api/v1"))
 
 	// Archivos estáticos
 	router.Static("/public", "./public")

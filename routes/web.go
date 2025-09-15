@@ -7,8 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Web() *gin.Engine {
-	router := gin.Default()
+func Web(router *gin.RouterGroup) {
 
 	// IMPORTANTE: El middleware debe estar ANTES de todas las rutas
 	router.Use(middleware.MethodOverride(), middleware.LanguageMiddleware())
@@ -96,6 +95,4 @@ func Web() *gin.Engine {
 
 	// Ruta para cambiar idioma
 	router.POST("/set-lang", middleware.SetLangHandler)
-
-	return router
 }
