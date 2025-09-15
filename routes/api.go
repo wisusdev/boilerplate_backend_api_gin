@@ -15,7 +15,6 @@ func Api(router *gin.RouterGroup) {
 	userPermissionController := &base.UserPermissionController{}
 
 	authRouter := router.Group("/auth")
-	authRouter.Use(middleware.ValidateJSONAPIDocument())
 	{
 		// Auth routes
 		authRouter.POST("/login", auth.Login)
@@ -30,7 +29,7 @@ func Api(router *gin.RouterGroup) {
 
 	// Rutas protegidas con autenticación
 	protected := router.Group("/")
-	protected.Use(middleware.AuthMiddleware())
+	protected.Use(middleware.AuthMiddleware(), middleware.ValidateJSONAPIDocument())
 	{
 		// Rutas de roles
 		roles := protected.Group("/roles")
