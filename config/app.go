@@ -19,7 +19,7 @@ func AppConfig() *App {
 		Key:             GetEnv("APP_KEY", ""),
 		Debug:           GetEnvBool("APP_DEBUG", false),
 		Timezone:        GetEnv("APP_TIMEZONE", "UTC"),
-		Url:             GetEnv("APP_URL", "http://localhost"),
+		Url:             GetEnv("APP_URL", "http://localhost:8080"),
 		Lang:            GetEnv("APP_LANG", "en"),
 		MustVerifyEmail: GetEnvBool("APP_MUST_VERIFY_EMAIL", false),
 		Layout:          "resources/views/layouts/app.html",
