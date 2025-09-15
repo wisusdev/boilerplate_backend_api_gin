@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"semita/core/helpers"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -45,6 +46,7 @@ func ValidateJSONAPIDocument() gin.HandlerFunc {
 			// Leer y deserializar el cuerpo
 			var doc JSONAPIDocument
 			if err := context.ShouldBindJSON(&doc); err != nil {
+				helpers.Logs("ERROR", "Error al parsear JSON: "+err.Error())
 				context.AbortWithStatusJSON(400, gin.H{"error": "JSON inválido"})
 				return
 			}
