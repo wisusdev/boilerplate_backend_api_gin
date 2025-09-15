@@ -28,8 +28,6 @@ func ValidateJSONAPIDocument() gin.HandlerFunc {
 	return func(context *gin.Context) {
 		method := context.Request.Method
 
-		fmt.Println("Middleware ValidateJSONAPIDocument invoked for method:", method)
-
 		// Solo aplicamos validación para métodos que envían cuerpo
 		if method == "POST" || method == "PATCH" || method == "PUT" {
 
