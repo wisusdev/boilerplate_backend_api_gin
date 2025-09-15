@@ -48,13 +48,6 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		tokenString := parts[1]
 
-		// Debug: Log token info
-		tokenStart := tokenString
-		if len(tokenString) > 50 {
-			tokenStart = tokenString[:50]
-		}
-		helpers.Logs("DEBUG", fmt.Sprintf("Received token length: %d, starts with: %s", len(tokenString), tokenStart))
-
 		// Validar el token JWT
 		claims, err := helpers.ValidateJWTToken(tokenString)
 		if err != nil {
