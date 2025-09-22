@@ -1,9 +1,9 @@
 package repositories
 
 import (
+	"boilerplate_backend_api_gin/core/database/database_connections"
+	"boilerplate_backend_api_gin/core/roles_and_permissions/models"
 	"fmt"
-	"semita/core/database/database_connections"
-	"semita/core/roles_and_permissions/models"
 	"strings"
 )
 
@@ -315,10 +315,7 @@ func UserHasPermission(userID string, permissionName string, guardName string) (
 			WHERE ur.model_id = ? AND ur.model_type = 'users' AND p.name = ? AND p.guard_name = ?
 		) AS combined_permissions
 	`
-	fmt.Println("UserId:", userID)
-	fmt.Println("PermissionName:", permissionName)
-	fmt.Println("GuardName:", guardName)
-	fmt.Println(query)
+
 	var count int
 	err := database.QueryRow(query, userID, permissionName, guardName, userID, permissionName, guardName).Scan(&count)
 	if err != nil {

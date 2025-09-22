@@ -1,9 +1,9 @@
 package routes
 
 import (
-	"semita/app/http/controllers/api/v1/auth"
-	"semita/app/http/controllers/api/v1/base"
-	"semita/app/http/middleware"
+	"boilerplate_backend_api_gin/app/http/controllers/api/v1/auth"
+	"boilerplate_backend_api_gin/app/http/controllers/api/v1/base"
+	"boilerplate_backend_api_gin/app/http/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -31,34 +31,15 @@ func Api(router *gin.RouterGroup) {
 	protected := router.Group("/")
 	protected.Use(middleware.AuthMiddleware(), middleware.ValidateJSONAPIDocument())
 	{
-		// Rutas de roles
-		roles := protected.Group("/roles")
-		{
-			roles.GET("/", roleController.Index)
-			roles.GET("/:id", roleController.Show)
-			roles.POST("/", middleware.RequirePermission("create-roles"), roleController.Store)
-			roles.PUT("/:id", middleware.RequirePermission("edit-roles"), roleController.Update)
-			roles.DELETE("/:id", middleware.RequirePermission("delete-roles"), roleController.Delete)
-			roles.POST("/assign-user", middleware.RequirePermission("assign-roles"), roleController.AssignToUser)
-			roles.POST("/revoke-user", middleware.RequirePermission("assign-roles"), roleController.RevokeFromUser)
-			roles.GET("/user/:user_id", roleController.GetUserRoles)
-		}
-
 		// Rutas de permisos
-		permissions := protected.Group("/permissions")
-		{
-			permissions.GET("/", permissionController.Index)
-			permissions.GET("/:id", permissionController.Show)
-			permissions.POST("/", middleware.RequirePermission("create-permissions"), permissionController.Store)
-			permissions.PUT("/:id", middleware.RequirePermission("edit-permissions"), permissionController.Update)
-			permissions.DELETE("/:id", middleware.RequirePermission("delete-permissions"), permissionController.Delete)
-			permissions.POST("/assign-user", middleware.RequirePermission("assign-permissions"), permissionController.AssignToUser)
-			permissions.POST("/assign-role", middleware.RequirePermission("assign-permissions"), permissionController.AssignToRole)
-			permissions.POST("/revoke-user", middleware.RequirePermission("assign-permissions"), permissionController.RevokeFromUser)
-			permissions.POST("/revoke-role", middleware.RequirePermission("assign-permissions"), permissionController.RevokeFromRole)
-			permissions.GET("/user/:user_id", permissionController.GetUserPermissions)
-			permissions.GET("/role/:role_id", permissionController.GetRolePermissions)
-		}
+		protected.GET("/permissions", permissionController.Index)
+
+		// Rutas de roles
+		protected.GET("/roles", roleController.Index)
+		protected.GET("/roles/:id", roleController.Show)
+		protected.POST("/roles", middleware.RequirePermission("create-roles"), roleController.Store)
+		protected.PUT("/roles/:id", middleware.RequirePermission("edit-roles"), roleController.Update)
+		protected.DELETE("/roles/:id", middleware.RequirePermission("delete-roles"), roleController.Delete)
 
 		// Rutas de verificación de permisos
 		userPerms := protected.Group("/user-permissions")

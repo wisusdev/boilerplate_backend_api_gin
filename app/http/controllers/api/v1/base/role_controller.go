@@ -1,11 +1,11 @@
 package base
 
 import (
+	"boilerplate_backend_api_gin/core/helpers"
+	"boilerplate_backend_api_gin/core/roles_and_permissions/models"
+	"boilerplate_backend_api_gin/core/roles_and_permissions/providers"
+	"boilerplate_backend_api_gin/core/roles_and_permissions/repositories"
 	"net/http"
-	"semita/core/helpers"
-	"semita/core/roles_and_permissions/models"
-	"semita/core/roles_and_permissions/providers"
-	"semita/core/roles_and_permissions/repositories"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -15,22 +15,33 @@ import (
 type RoleController struct{}
 
 // Index muestra todos los roles
-func (rc *RoleController) Index(c *gin.Context) {
-	roles, err := providers.GetAllRoles()
-	if err != nil {
-		helpers.CreateFlashNotification(c.Writer, c.Request, "error", "Error retrieving roles: "+err.Error())
-		c.Redirect(http.StatusSeeOther, "/")
+func (roleController *RoleController) Index(context *gin.Context) {
+
+	if !helpers.HasPermissionGin(context, "roles:index") {
+		context.JSON(http.StatusForbidden, gin.H{
+			"status":  "error",
+			"message": "You don't have permission to access this resource",
+		})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	roles, err := providers.GetAllRoles()
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status":  "error",
+			"message": "Error retrieving roles: " + err.Error(),
+		})
+		return
+	}
+
+	context.JSON(http.StatusOK, gin.H{
 		"status": "success",
 		"data":   roles,
 	})
 }
 
 // Show muestra un rol específico con sus permisos
-func (rc *RoleController) Show(c *gin.Context) {
+func (roleController *RoleController) Show(c *gin.Context) {
 	idParam := c.Param("id")
 	id, err := strconv.Atoi(idParam)
 	if err != nil {
@@ -71,7 +82,7 @@ func (rc *RoleController) Show(c *gin.Context) {
 }
 
 // Store crea un nuevo rol
-func (rc *RoleController) Store(c *gin.Context) {
+func (roleController *RoleController) Store(c *gin.Context) {
 	var roleData models.CreateRoleStruct
 	if err := c.ShouldBindJSON(&roleData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -99,7 +110,7 @@ func (rc *RoleController) Store(c *gin.Context) {
 }
 
 // Update actualiza un rol existente
-func (rc *RoleController) Update(c *gin.Context) {
+func (roleController *RoleController) Update(c *gin.Context) {
 	idParam := c.Param("id")
 	id, err := strconv.Atoi(idParam)
 	if err != nil {
@@ -137,7 +148,7 @@ func (rc *RoleController) Update(c *gin.Context) {
 }
 
 // Delete elimina un rol
-func (rc *RoleController) Delete(c *gin.Context) {
+func (roleController *RoleController) Delete(c *gin.Context) {
 	idParam := c.Param("id")
 	id, err := strconv.Atoi(idParam)
 	if err != nil {
@@ -164,7 +175,7 @@ func (rc *RoleController) Delete(c *gin.Context) {
 }
 
 // AssignToUser asigna un rol a un usuario
-func (rc *RoleController) AssignToUser(c *gin.Context) {
+func (roleController *RoleController) AssignToUser(c *gin.Context) {
 	var request models.AssignRoleRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -191,7 +202,7 @@ func (rc *RoleController) AssignToUser(c *gin.Context) {
 }
 
 // RevokeFromUser revoca un rol de un usuario
-func (rc *RoleController) RevokeFromUser(c *gin.Context) {
+func (roleController *RoleController) RevokeFromUser(c *gin.Context) {
 	var request models.AssignRoleRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -218,7 +229,7 @@ func (rc *RoleController) RevokeFromUser(c *gin.Context) {
 }
 
 // GetUserRoles obtiene todos los roles de un usuario
-func (rc *RoleController) GetUserRoles(c *gin.Context) {
+func (roleController *RoleController) GetUserRoles(c *gin.Context) {
 	userID := c.Param("user_id")
 	if userID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{

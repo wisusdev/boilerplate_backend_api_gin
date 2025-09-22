@@ -1,9 +1,9 @@
 package repositories
 
 import (
+	"boilerplate_backend_api_gin/core/database/database_connections"
+	"boilerplate_backend_api_gin/core/roles_and_permissions/models"
 	"fmt"
-	"semita/core/database/database_connections"
-	"semita/core/roles_and_permissions/models"
 	"strings"
 )
 
@@ -14,7 +14,7 @@ func GetAllRoles() ([]models.RoleStruct, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
-	query := `SELECT id, name, guard_name, created_at, updated_at FROM ` + rolesTable + ` ORDER BY name`
+	query := `SELECT uuid, name, guard_name, created_at, updated_at FROM ` + rolesTable + ` ORDER BY name`
 	rows, err := database.Query(query)
 	if err != nil {
 		return nil, err
