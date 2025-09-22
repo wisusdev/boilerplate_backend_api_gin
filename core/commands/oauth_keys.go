@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"boilerplate_backend_api_gin/core/cli"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
@@ -8,7 +9,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"semita/core/cli"
 )
 
 var OauthKeysCmd = cli.Command{

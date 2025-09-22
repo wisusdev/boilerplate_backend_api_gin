@@ -1,9 +1,9 @@
 package examples
 
 import (
+	"boilerplate_backend_api_gin/app/data/models"
+	"boilerplate_backend_api_gin/core/database/orm"
 	"database/sql"
-	"semita/app/data/models"
-	"semita/core/database/orm"
 	"strconv"
 )
 

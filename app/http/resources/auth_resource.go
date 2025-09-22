@@ -1,8 +1,8 @@
 package resources
 
 import (
-	userModels "semita/app/data/models"
-	rpModels "semita/core/roles_and_permissions/models"
+	userModels "boilerplate_backend_api_gin/app/data/models"
+	rpModels "boilerplate_backend_api_gin/core/roles_and_permissions/models"
 )
 
 // AuthResource estructura para la respuesta de autenticación

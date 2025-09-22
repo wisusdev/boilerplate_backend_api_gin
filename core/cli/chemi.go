@@ -1,8 +1,8 @@
 package cli
 
 import (
+	"boilerplate_backend_api_gin/core/helpers"
 	"fmt"
-	"semita/core/helpers"
 	"sort"
 )
 
@@ -26,7 +26,7 @@ func RegisterCommand(cmd Command) {
 
 // Comando para listar todos los demás comandos
 func ListCommands(args []string) {
-	fmt.Println(helpers.ColorMagenta("Semita CLI (versión casera)"))
+	fmt.Println(helpers.ColorMagenta("boilerplate_backend_api_gin CLI (versión casera)"))
 	fmt.Println("---------------------------")
 	fmt.Println(helpers.ColorYellow("Uso: go run main.go <comando> [argumentos]"))
 	fmt.Println("\nComandos disponibles:")

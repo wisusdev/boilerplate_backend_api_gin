@@ -1,7 +1,7 @@
 package providers
 
 import (
-	"semita/app/data/repositories"
+	"boilerplate_backend_api_gin/app/data/repositories"
 )
 
 // CreatePasswordReset creates a new password reset token

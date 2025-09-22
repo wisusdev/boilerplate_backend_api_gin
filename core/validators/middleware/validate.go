@@ -1,9 +1,9 @@
 package middleware
 
 import (
+	"boilerplate_backend_api_gin/core/validators"
 	"fmt"
 	"reflect"
-	"semita/core/validators"
 
 	"github.com/gin-gonic/gin"
 )

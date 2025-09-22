@@ -1,13 +1,13 @@
 package orm
 
 import (
+	"boilerplate_backend_api_gin/core/database/database_connections"
+	"boilerplate_backend_api_gin/core/helpers"
 	"database/sql"
 	"errors"
 	"fmt"
 	"reflect"
 	"strings"
-	"semita/core/database/database_connections"
-	"semita/core/helpers"
 )
 
 // Model es la interfaz que define un modelo de datos para el ORM
@@ -17,16 +17,16 @@ type Model interface {
 
 // QueryBuilder ayuda a construir consultas SQL
 type QueryBuilder struct {
-	tableName   string
-	selections  []string
-	conditions  []string
-	parameters  []interface{}
-	orders      []string
-	limit       int
-	offset      int
-	joins       []string
-	groupBy     []string
-	distinct    bool
+	tableName  string
+	selections []string
+	conditions []string
+	parameters []interface{}
+	orders     []string
+	limit      int
+	offset     int
+	joins      []string
+	groupBy    []string
+	distinct   bool
 }
 
 // Repository es la estructura base para trabajar con el ORM

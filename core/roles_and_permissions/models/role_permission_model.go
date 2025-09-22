@@ -1,6 +1,6 @@
 package models
 
-import dataStructs "semita/app/data/models"
+import dataStructs "boilerplate_backend_api_gin/app/data/models"
 
 // Role struct representa un rol en el sistema
 type RoleStruct struct {

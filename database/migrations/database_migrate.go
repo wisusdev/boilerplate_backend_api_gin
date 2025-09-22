@@ -1,9 +1,9 @@
 package migrations
 
 import (
+	"boilerplate_backend_api_gin/core/database/database_connections"
+	"boilerplate_backend_api_gin/core/database/generate_migrations"
 	"fmt"
-	"semita/core/database/database_connections"
-	"semita/core/database/generate_migrations"
 )
 
 func WithMigrator(action func(migrator *generate_migrations.Migrator)) {

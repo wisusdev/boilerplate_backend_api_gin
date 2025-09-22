@@ -1,8 +1,8 @@
 package routes
 
 import (
-	"semita/app/http/controllers/web"
-	"semita/app/http/middleware"
+	"boilerplate_backend_api_gin/app/http/controllers/web"
+	"boilerplate_backend_api_gin/app/http/middleware"
 
 	"github.com/gin-gonic/gin"
 )

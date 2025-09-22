@@ -1,4 +1,4 @@
-module semita
+module boilerplate_backend_api_gin
 
 go 1.24.5
 

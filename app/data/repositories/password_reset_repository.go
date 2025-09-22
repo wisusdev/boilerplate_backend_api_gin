@@ -1,8 +1,8 @@
 package repositories
 
 import (
-	"semita/core/database/database_connections"
-	"semita/core/helpers"
+	"boilerplate_backend_api_gin/core/database/database_connections"
+	"boilerplate_backend_api_gin/core/helpers"
 	"time"
 )
 

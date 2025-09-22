@@ -1,10 +1,10 @@
 package validators
 
 import (
+	"boilerplate_backend_api_gin/core/database/database_connections"
+	"boilerplate_backend_api_gin/core/helpers"
 	"encoding/json"
 	"fmt"
-	"semita/core/database/database_connections"
-	"semita/core/helpers"
 	"sort"
 	"strings"
 	"sync"

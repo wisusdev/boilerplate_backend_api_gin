@@ -59,7 +59,7 @@ func (mg *MigrationGenerator) generateMigrationContent(structType reflect.Type, 
 
 import (
 	"database/sql"
-	"semita/app/core/database"
+	"boilerplate_backend_api_gin/app/core/database"
 )
 
 type %s struct {

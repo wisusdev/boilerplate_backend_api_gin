@@ -1,6 +1,6 @@
 package oauth_models
 
-import "semita/core/database/database_connections"
+import "boilerplate_backend_api_gin/core/database/database_connections"
 
 type OAuthScope struct {
 	ID          int64  `db:"id"`

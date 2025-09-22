@@ -1,8 +1,8 @@
 package auth
 
 import (
+	"boilerplate_backend_api_gin/core/oauth/oauth_models"
 	"net/http"
-	"semita/core/oauth/oauth_models"
 
 	"github.com/gin-gonic/gin"
 )

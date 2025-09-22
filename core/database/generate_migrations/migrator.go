@@ -1,9 +1,9 @@
 package generate_migrations
 
 import (
+	"boilerplate_backend_api_gin/core/database/database_connections"
+	"boilerplate_backend_api_gin/core/helpers"
 	"fmt"
-	"semita/core/database/database_connections"
-	"semita/core/helpers"
 	"sort"
 )
 

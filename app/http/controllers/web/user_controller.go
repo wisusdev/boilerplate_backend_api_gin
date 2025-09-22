@@ -1,12 +1,12 @@
 package web
 
 import (
+	"boilerplate_backend_api_gin/app/data/models"
+	"boilerplate_backend_api_gin/app/data/providers"
+	"boilerplate_backend_api_gin/core/helpers"
+	roleAndPermissionModels "boilerplate_backend_api_gin/core/roles_and_permissions/providers"
 	"fmt"
 	"net/http"
-	"semita/app/data/models"
-	"semita/app/data/providers"
-	"semita/core/helpers"
-	roleAndPermissionModels "semita/core/roles_and_permissions/providers"
 	"strconv"
 
 	"github.com/gin-gonic/gin"

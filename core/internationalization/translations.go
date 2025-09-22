@@ -1,10 +1,10 @@
 package internationalization
 
 import (
+	"boilerplate_backend_api_gin/config"
 	"encoding/json"
 	"fmt"
 	"os"
-	"semita/config"
 	"strings"
 )
 

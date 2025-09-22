@@ -1,8 +1,8 @@
 package examples
 
 import (
-	"semita/app/data/models"
-	"semita/core/database/orm"
+	"boilerplate_backend_api_gin/app/data/models"
+	"boilerplate_backend_api_gin/core/database/orm"
 	"time"
 )
 

@@ -1,6 +1,6 @@
 package requests
 
-import "semita/core/validators"
+import "boilerplate_backend_api_gin/core/validators"
 
 type ResetPasswordRequest struct {
 	Data struct {

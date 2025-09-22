@@ -1,9 +1,9 @@
 package seeders
 
 import (
+	"boilerplate_backend_api_gin/core/database/database_connections"
+	"boilerplate_backend_api_gin/core/database/generate_seeders"
 	"log"
-	"semita/core/database/database_connections"
-	"semita/core/database/generate_seeders"
 )
 
 // DatabaseSeeder seeder principal que ejecuta todos los seeders

@@ -1,8 +1,8 @@
 package notifications
 
 import (
+	"boilerplate_backend_api_gin/core/helpers"
 	"fmt"
-	"semita/core/helpers"
 )
 
 var DefaultNotifier helpers.Notifier = helpers.EmailNotifier{}

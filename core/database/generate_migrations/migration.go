@@ -1,6 +1,6 @@
 package generate_migrations
 
-import "semita/core/database/database_connections"
+import "boilerplate_backend_api_gin/core/database/database_connections"
 
 // Migration interface que define los métodos que debe implementar cada migración
 type Migration interface {

@@ -1,11 +1,11 @@
 package auth
 
 import (
+	userModels "boilerplate_backend_api_gin/app/data/models"
+	userProviders "boilerplate_backend_api_gin/app/data/providers"
+	"boilerplate_backend_api_gin/app/http/requests"
+	"boilerplate_backend_api_gin/core/validators"
 	"net/http"
-	userModels "semita/app/data/models"
-	userProviders "semita/app/data/providers"
-	"semita/app/http/requests"
-	"semita/core/validators"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"

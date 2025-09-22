@@ -1,10 +1,10 @@
 package commands
 
 import (
+	"boilerplate_backend_api_gin/core/cli"
+	"boilerplate_backend_api_gin/core/helpers"
 	"crypto/rand"
 	"encoding/base64"
-	"semita/core/cli"
-	"semita/core/helpers"
 )
 
 var KeyGenerateCmd = cli.Command{

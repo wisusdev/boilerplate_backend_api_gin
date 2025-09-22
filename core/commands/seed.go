@@ -1,11 +1,11 @@
 package commands
 
 import (
+	"boilerplate_backend_api_gin/core/cli"
+	"boilerplate_backend_api_gin/core/helpers"
+	"boilerplate_backend_api_gin/database/seeders"
 	"fmt"
 	"log"
-	"semita/core/cli"
-	"semita/core/helpers"
-	"semita/database/seeders"
 )
 
 // SeedAllCommand ejecuta todos los generate_seeders

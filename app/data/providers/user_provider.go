@@ -1,8 +1,8 @@
 package providers
 
 import (
-	"semita/app/data/models"
-	"semita/app/data/repositories"
+	"boilerplate_backend_api_gin/app/data/models"
+	"boilerplate_backend_api_gin/app/data/repositories"
 )
 
 var tableName = "users"

@@ -1,8 +1,8 @@
 package helpers
 
 import (
+	"boilerplate_backend_api_gin/config"
 	"net/http"
-	"semita/config"
 	"sync"
 
 	"github.com/gorilla/sessions"

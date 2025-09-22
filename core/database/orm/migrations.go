@@ -1,9 +1,9 @@
 package orm
 
 import (
+	"boilerplate_backend_api_gin/core/database/database_connections"
 	"fmt"
 	"reflect"
-	"semita/core/database/database_connections"
 	"strings"
 	"time"
 )

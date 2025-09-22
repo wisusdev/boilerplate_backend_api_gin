@@ -1,9 +1,8 @@
 package helpers
 
 import (
-	"fmt"
+	"boilerplate_backend_api_gin/core/roles_and_permissions/providers"
 	"net/http"
-	"semita/core/roles_and_permissions/providers"
 
 	"github.com/gin-gonic/gin"
 )
@@ -374,7 +373,6 @@ func (rph *RolePermissionHelper) HasPermissionGin(c *gin.Context, permissionName
 	guard := rph.getGuardNameFromContext(c, guardName...)
 
 	hasPermission, err := providers.UserHasPermission(userID, permissionName, guard)
-	fmt.Println("Checking permission:", permissionName, "for user:", userID, "with guard:", guard, "Result:", hasPermission, "Error:", err)
 	if err != nil {
 		return false
 	}

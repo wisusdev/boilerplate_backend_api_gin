@@ -1,9 +1,9 @@
 package database_connections
 
 import (
+	"boilerplate_backend_api_gin/config"
 	"os"
 	"path/filepath"
-	"semita/config"
 
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"

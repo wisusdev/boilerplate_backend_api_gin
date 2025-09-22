@@ -1,10 +1,10 @@
 package orm
 
 import (
+	"boilerplate_backend_api_gin/core/common/nulltypes"
+	"boilerplate_backend_api_gin/core/helpers"
 	"errors"
 	"reflect"
-	"semita/core/common/nulltypes"
-	"semita/core/helpers"
 	"strings"
 	"time"
 )

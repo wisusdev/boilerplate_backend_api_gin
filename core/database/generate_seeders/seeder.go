@@ -1,10 +1,10 @@
 package generate_seeders
 
 import (
+	"boilerplate_backend_api_gin/core/database/database_connections"
+	"boilerplate_backend_api_gin/core/helpers"
 	"fmt"
 	"log"
-	"semita/core/database/database_connections"
-	"semita/core/helpers"
 )
 
 // Seeder interface que deben implementar todos los generate_seeders

@@ -1,14 +1,14 @@
 package auth
 
 import (
+	userProviders "boilerplate_backend_api_gin/app/data/providers"
+	"boilerplate_backend_api_gin/app/http/requests"
+	"boilerplate_backend_api_gin/app/http/resources"
+	"boilerplate_backend_api_gin/core/helpers"
+	"boilerplate_backend_api_gin/core/oauth/oauth_models"
+	rpProviders "boilerplate_backend_api_gin/core/roles_and_permissions/providers"
+	"boilerplate_backend_api_gin/core/validators"
 	"net/http"
-	userProviders "semita/app/data/providers"
-	"semita/app/http/requests"
-	"semita/app/http/resources"
-	"semita/core/helpers"
-	"semita/core/oauth/oauth_models"
-	rpProviders "semita/core/roles_and_permissions/providers"
-	"semita/core/validators"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"

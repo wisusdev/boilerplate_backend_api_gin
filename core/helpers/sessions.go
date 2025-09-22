@@ -1,11 +1,11 @@
 package helpers
 
 import (
+	"boilerplate_backend_api_gin/config"
+	"boilerplate_backend_api_gin/core/common/nulltypes"
+	"boilerplate_backend_api_gin/core/database/database_connections"
+	"boilerplate_backend_api_gin/core/internationalization"
 	"net/http"
-	"semita/config"
-	"semita/core/common/nulltypes"
-	"semita/core/database/database_connections"
-	"semita/core/internationalization"
 	"sync"
 
 	"github.com/gin-gonic/gin"

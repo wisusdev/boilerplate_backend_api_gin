@@ -1,11 +1,11 @@
 package auth
 
 import (
+	"boilerplate_backend_api_gin/app/data/providers"
+	"boilerplate_backend_api_gin/app/notifications"
+	"boilerplate_backend_api_gin/config"
+	"boilerplate_backend_api_gin/core/helpers"
 	"net/http"
-	"semita/app/data/providers"
-	"semita/app/notifications"
-	"semita/config"
-	"semita/core/helpers"
 
 	"github.com/gin-gonic/gin"
 )
@@ -71,6 +71,6 @@ func VerifyEmail(context *gin.Context) {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": "No se pudo verificar el email"})
 		return
 	}
-	
+
 	context.JSON(http.StatusOK, gin.H{"message": "Email verificado correctamente"})
 }

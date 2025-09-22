@@ -1,7 +1,7 @@
 package models
 
 import (
-	"semita/core/common/nulltypes"
+	"boilerplate_backend_api_gin/core/common/nulltypes"
 	"time"
 )
 

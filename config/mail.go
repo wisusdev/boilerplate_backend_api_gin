@@ -53,7 +53,7 @@ func MailConfig() *Mailers {
 		},
 		From: From{
 			Address: GetEnv("MAIL_FROM_ADDRESS", ""),
-			Name:    GetEnv("MAIL_FROM_NAME", "Semita"),
+			Name:    GetEnv("MAIL_FROM_NAME", "boilerplate_backend_api_gin"),
 		},
 	}
 }

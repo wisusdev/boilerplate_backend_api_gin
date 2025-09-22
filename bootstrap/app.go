@@ -1,11 +1,11 @@
 package bootstrap
 
 import (
+	"boilerplate_backend_api_gin/core/cli"
+	"boilerplate_backend_api_gin/core/commands"
+	"boilerplate_backend_api_gin/core/helpers"
 	"fmt"
 	"os"
-	"semita/core/cli"
-	"semita/core/commands"
-	"semita/core/helpers"
 )
 
 func Commands() {

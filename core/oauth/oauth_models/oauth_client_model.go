@@ -1,10 +1,10 @@
 package oauth_models
 
 import (
+	"boilerplate_backend_api_gin/core/database/database_connections"
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
-	"semita/core/database/database_connections"
 	"strings"
 )
 

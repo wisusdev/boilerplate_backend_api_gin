@@ -1,9 +1,9 @@
 package migrations
 
 import (
-	"semita/core/database/database_connections"
-	"semita/core/database/generate_migrations"
-	"semita/core/database/schema"
+	"boilerplate_backend_api_gin/core/database/database_connections"
+	"boilerplate_backend_api_gin/core/database/generate_migrations"
+	"boilerplate_backend_api_gin/core/database/schema"
 )
 
 type CreateOauthPersonalAccessClientsTable struct {

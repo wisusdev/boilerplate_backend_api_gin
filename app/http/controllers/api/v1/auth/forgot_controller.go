@@ -1,14 +1,14 @@
 package auth
 
 import (
+	"boilerplate_backend_api_gin/app/data/models"
+	"boilerplate_backend_api_gin/app/data/providers"
+	"boilerplate_backend_api_gin/app/http/requests"
+	"boilerplate_backend_api_gin/app/notifications"
+	"boilerplate_backend_api_gin/config"
+	"boilerplate_backend_api_gin/core/helpers"
+	"boilerplate_backend_api_gin/core/validators"
 	"net/http"
-	"semita/app/data/models"
-	"semita/app/data/providers"
-	"semita/app/http/requests"
-	"semita/app/notifications"
-	"semita/config"
-	"semita/core/helpers"
-	"semita/core/validators"
 	"time"
 
 	"github.com/gin-gonic/gin"

@@ -62,8 +62,8 @@ func (sg *SeederGenerator) generateSeederContent(structType reflect.Type, tableN
 
 import (
 	"log"
-	"semita/app/core/database"
-	"semita/config"
+	"boilerplate_backend_api_gin/app/core/database"
+	"boilerplate_backend_api_gin/config"
 )
 
 // %s seeder para %s

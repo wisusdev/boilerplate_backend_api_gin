@@ -1,4 +1,4 @@
-# SEMITA
+# boilerplate_backend_api_gin
 
 ## Guia de instalación
 

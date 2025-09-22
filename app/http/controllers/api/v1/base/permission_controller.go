@@ -1,10 +1,10 @@
 package base
 
 import (
+	"boilerplate_backend_api_gin/core/helpers"
+	"boilerplate_backend_api_gin/core/roles_and_permissions/models"
+	"boilerplate_backend_api_gin/core/roles_and_permissions/providers"
 	"net/http"
-	"semita/core/helpers"
-	"semita/core/roles_and_permissions/models"
-	"semita/core/roles_and_permissions/providers"
 	"strconv"
 
 	"github.com/gin-gonic/gin"

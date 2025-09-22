@@ -1,8 +1,8 @@
 package middleware
 
 import (
+	"boilerplate_backend_api_gin/core/helpers"
 	"net/http"
-	"semita/core/helpers"
 
 	"github.com/gin-gonic/gin"
 )

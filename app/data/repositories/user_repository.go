@@ -1,11 +1,11 @@
 package repositories
 
 import (
-	"semita/app/data/models"
-	"semita/core/common/nulltypes"
-	"semita/core/database/database_connections"
-	"semita/core/database/orm"
-	"semita/core/helpers"
+	"boilerplate_backend_api_gin/app/data/models"
+	"boilerplate_backend_api_gin/core/common/nulltypes"
+	"boilerplate_backend_api_gin/core/database/database_connections"
+	"boilerplate_backend_api_gin/core/database/orm"
+	"boilerplate_backend_api_gin/core/helpers"
 	"time"
 
 	"github.com/google/uuid"

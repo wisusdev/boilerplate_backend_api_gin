@@ -1,10 +1,10 @@
 package helpers
 
 import (
+	"boilerplate_backend_api_gin/config"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"semita/config"
 	_ "strconv"
 
 	"gopkg.in/gomail.v2"

@@ -1,10 +1,10 @@
 package helpers
 
 import (
+	"boilerplate_backend_api_gin/config"
 	"fmt"
 	"net/http"
 	"path/filepath"
-	"semita/config"
 	"text/template"
 
 	"github.com/gin-gonic/gin"

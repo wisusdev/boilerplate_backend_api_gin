@@ -1,7 +1,7 @@
 package requests
 
 import (
-	"semita/core/validators"
+	"boilerplate_backend_api_gin/core/validators"
 )
 
 type LoginRequest struct {

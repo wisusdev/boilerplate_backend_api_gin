@@ -1,16 +1,16 @@
 package main
 
 import (
+	"boilerplate_backend_api_gin/app/http/controllers/web"
+	"boilerplate_backend_api_gin/bootstrap"
+	"boilerplate_backend_api_gin/config"
+	"boilerplate_backend_api_gin/core/helpers"
+	"boilerplate_backend_api_gin/core/internationalization"
+	"boilerplate_backend_api_gin/routes"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
-	"semita/app/http/controllers/web"
-	"semita/bootstrap"
-	"semita/config"
-	"semita/core/helpers"
-	"semita/core/internationalization"
-	"semita/routes"
 	"time"
 
 	"github.com/gin-gonic/gin"

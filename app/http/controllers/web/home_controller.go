@@ -1,7 +1,7 @@
 package web
 
 import (
-	"semita/core/helpers"
+	"boilerplate_backend_api_gin/core/helpers"
 
 	"github.com/gin-gonic/gin"
 )

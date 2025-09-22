@@ -1,8 +1,8 @@
 package providers
 
 import (
-	"semita/core/roles_and_permissions/models"
-	"semita/core/roles_and_permissions/repositories"
+	"boilerplate_backend_api_gin/core/roles_and_permissions/models"
+	"boilerplate_backend_api_gin/core/roles_and_permissions/repositories"
 )
 
 // GetAllPermissions obtiene todos los permisos

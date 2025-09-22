@@ -1,13 +1,13 @@
 package commands
 
 import (
+	"boilerplate_backend_api_gin/core/cli"
+	"boilerplate_backend_api_gin/core/database/generate_migrations"
+	"boilerplate_backend_api_gin/database/migrations"
 	"fmt"
 	"log"
 	"os"
 	"path/filepath"
-	"semita/core/cli"
-	"semita/core/database/generate_migrations"
-	"semita/database/migrations"
 	"strings"
 	"text/template"
 	"time"
@@ -67,8 +67,8 @@ func createMigrationFile(name string) {
 	const migrationTpl = `package migrations
 
 import (
-	"semita/core/database/database_connections"
-	"semita/core/database/generate_migrations"
+	"boilerplate_backend_api_gin/core/database/database_connections"
+	"boilerplate_backend_api_gin/core/database/generate_migrations"
 )
 
 type {{.StructName}} struct {

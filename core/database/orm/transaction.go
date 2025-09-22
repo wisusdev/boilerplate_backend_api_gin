@@ -1,8 +1,8 @@
 package orm
 
 import (
+	"boilerplate_backend_api_gin/core/database/database_connections"
 	"database/sql"
-	"semita/core/database/database_connections"
 )
 
 // Transaction maneja transacciones de base de datos

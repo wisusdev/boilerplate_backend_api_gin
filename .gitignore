@@ -3,6 +3,7 @@
 /storage/oauth/*.key
 /storage/logs/*.log
 /storage/temp
+/storage/*.db
 *.DS_Store
 **/tmp
 .env

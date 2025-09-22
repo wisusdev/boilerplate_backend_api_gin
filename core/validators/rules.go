@@ -1,10 +1,10 @@
 package validators
 
 import (
+	"boilerplate_backend_api_gin/core/database/database_connections"
 	"fmt"
 	"reflect"
 	"regexp"
-	"semita/core/database/database_connections"
 	"strconv"
 	"strings"
 )

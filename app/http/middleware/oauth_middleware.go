@@ -1,10 +1,10 @@
 package middleware
 
 import (
+	"boilerplate_backend_api_gin/core/helpers"
+	"boilerplate_backend_api_gin/core/oauth/oauth_models"
 	"fmt"
 	"net/http"
-	"semita/core/helpers"
-	"semita/core/oauth/oauth_models"
 	"strings"
 
 	"github.com/gin-gonic/gin"

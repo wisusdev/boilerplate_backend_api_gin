@@ -1,13 +1,13 @@
 package commands
 
 import (
+	"boilerplate_backend_api_gin/core/cli"
+	"boilerplate_backend_api_gin/core/oauth/oauth_models"
 	crand "crypto/rand"
 	"encoding/hex"
 	"fmt"
 	mrand "math/rand"
 	"os"
-	"semita/core/cli"
-	"semita/core/oauth/oauth_models"
 )
 
 var OauthClientCmd = cli.Command{

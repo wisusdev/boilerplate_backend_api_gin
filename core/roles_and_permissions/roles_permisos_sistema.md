@@ -91,7 +91,7 @@ router.GET("/settings", middleware.CheckRoleOrPermission("super-admin", "manage-
 ### Importar helpers
 
 ```go
-import "semita/app/helpers"
+import "boilerplate_backend_api_gin/app/helpers"
 ```
 
 ### Verificar roles
