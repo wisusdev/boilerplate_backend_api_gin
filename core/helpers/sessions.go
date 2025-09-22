@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"semita/config"
 	"semita/core/common/nulltypes"
+	"semita/core/database/database_connections"
 	"semita/core/internationalization"
 	"sync"
 
@@ -171,6 +172,74 @@ func GetAuthenticatedUser(request *http.Request) (UserSessionStruct, bool) {
 	}
 
 	return user, true
+}
+
+// getUserFromDB obtiene un usuario desde la base de datos directamente para evitar ciclos de importación
+func getUserFromDB(userID string) (UserSessionStruct, error) {
+	// Obtener conexión a la base de datos
+	db := database_connections.DatabaseConnectSQL()
+	defer db.Close()
+
+	query := "SELECT id, first_name, last_name, username, avatar, language, email FROM users WHERE id = ?"
+	row := db.QueryRow(query, userID)
+
+	var userData struct {
+		ID        string
+		FirstName string
+		LastName  string
+		Username  string
+		Avatar    *string
+		Language  string
+		Email     string
+	}
+
+	err := row.Scan(&userData.ID, &userData.FirstName, &userData.LastName, &userData.Username, &userData.Avatar, &userData.Language, &userData.Email)
+	if err != nil {
+		return UserSessionStruct{}, err
+	}
+
+	// Convertir avatar a NullString
+	var avatar nulltypes.NullString
+	if userData.Avatar != nil {
+		avatar = nulltypes.NullString{String: *userData.Avatar, Valid: true}
+	} else {
+		avatar = nulltypes.NullString{String: "", Valid: false}
+	}
+
+	// Convertir a UserSessionStruct
+	user := UserSessionStruct{
+		ID:            userData.ID,
+		FirstName:     userData.FirstName,
+		LastName:      userData.LastName,
+		Username:      userData.Username,
+		Avatar:        avatar,
+		Language:      StringToNullString(userData.Language),
+		Email:         userData.Email,
+		Authenticated: true,
+	}
+
+	return user, nil
+}
+
+// GetAppAuthenticatedUser obtiene el usuario autenticado desde el contexto de Gin,
+// manejando tanto sesiones web como tokens de API.
+func GetAppAuthenticatedUser(c *gin.Context) (UserSessionStruct, bool) {
+	// Primero, intentar obtener el user_id del contexto de Gin (para API con JWT)
+	if userID, exists := c.Get("user_id"); exists {
+		if id, ok := userID.(string); ok && id != "" {
+			// Si existe, obtener los detalles del usuario desde la base de datos
+			user, err := getUserFromDB(id)
+			if err != nil {
+				Logs("ERROR", "Error getting user from database: "+err.Error())
+				return UserSessionStruct{}, false
+			}
+
+			return user, true
+		}
+	}
+
+	// Si no se encuentra en el contexto de Gin, recurrir al método de sesión (para web)
+	return GetAuthenticatedUser(c.Request)
 }
 
 func LogoutUserSession(response http.ResponseWriter, request *http.Request) error {

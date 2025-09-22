@@ -14,22 +14,35 @@ import (
 type PermissionController struct{}
 
 // Index muestra todos los permisos
-func (pc *PermissionController) Index(c *gin.Context) {
-	permissions, err := providers.GetAllPermissions()
-	if err != nil {
-		helpers.CreateFlashNotification(c.Writer, c.Request, "error", "Error retrieving permissions: "+err.Error())
-		c.Redirect(http.StatusSeeOther, "/")
+func (permissionController *PermissionController) Index(context *gin.Context) {
+
+	if !helpers.HasPermissionGin(context, "permissions:index") {
+
+		context.JSON(http.StatusForbidden, gin.H{
+			"status":  "error",
+			"message": "You don't have permission to access this resource",
+		})
+
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	permissions, err := providers.GetAllPermissions()
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status":  "error",
+			"message": "Error retrieving permissions: " + err.Error(),
+		})
+		return
+	}
+
+	context.JSON(http.StatusOK, gin.H{
 		"status": "success",
 		"data":   permissions,
 	})
 }
 
 // Show muestra un permiso específico
-func (pc *PermissionController) Show(c *gin.Context) {
+func (permissionController *PermissionController) Show(c *gin.Context) {
 	idParam := c.Param("id")
 	id, err := strconv.Atoi(idParam)
 	if err != nil {
@@ -56,7 +69,7 @@ func (pc *PermissionController) Show(c *gin.Context) {
 }
 
 // Store crea un nuevo permiso
-func (pc *PermissionController) Store(c *gin.Context) {
+func (permissionController *PermissionController) Store(c *gin.Context) {
 	var permissionData models.CreatePermissionStruct
 	if err := c.ShouldBindJSON(&permissionData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -84,7 +97,7 @@ func (pc *PermissionController) Store(c *gin.Context) {
 }
 
 // Update actualiza un permiso existente
-func (pc *PermissionController) Update(c *gin.Context) {
+func (permissionController *PermissionController) Update(c *gin.Context) {
 	idParam := c.Param("id")
 	id, err := strconv.Atoi(idParam)
 	if err != nil {
@@ -122,7 +135,7 @@ func (pc *PermissionController) Update(c *gin.Context) {
 }
 
 // Delete elimina un permiso
-func (pc *PermissionController) Delete(c *gin.Context) {
+func (permissionController *PermissionController) Delete(c *gin.Context) {
 	idParam := c.Param("id")
 	id, err := strconv.Atoi(idParam)
 	if err != nil {
@@ -149,7 +162,7 @@ func (pc *PermissionController) Delete(c *gin.Context) {
 }
 
 // AssignToUser asigna un permiso directamente a un usuario
-func (pc *PermissionController) AssignToUser(c *gin.Context) {
+func (permissionController *PermissionController) AssignToUser(c *gin.Context) {
 	var request models.AssignPermissionRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -184,7 +197,7 @@ func (pc *PermissionController) AssignToUser(c *gin.Context) {
 }
 
 // AssignToRole asigna un permiso a un rol
-func (pc *PermissionController) AssignToRole(c *gin.Context) {
+func (permissionController *PermissionController) AssignToRole(c *gin.Context) {
 	var request models.AssignPermissionRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -219,7 +232,7 @@ func (pc *PermissionController) AssignToRole(c *gin.Context) {
 }
 
 // RevokeFromUser revoca un permiso directo de un usuario
-func (pc *PermissionController) RevokeFromUser(c *gin.Context) {
+func (permissionController *PermissionController) RevokeFromUser(c *gin.Context) {
 	var request models.AssignPermissionRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -254,7 +267,7 @@ func (pc *PermissionController) RevokeFromUser(c *gin.Context) {
 }
 
 // RevokeFromRole revoca un permiso de un rol
-func (pc *PermissionController) RevokeFromRole(c *gin.Context) {
+func (permissionController *PermissionController) RevokeFromRole(c *gin.Context) {
 	var request models.AssignPermissionRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -289,7 +302,7 @@ func (pc *PermissionController) RevokeFromRole(c *gin.Context) {
 }
 
 // GetUserPermissions obtiene todos los permisos de un usuario (directos + heredados)
-func (pc *PermissionController) GetUserPermissions(c *gin.Context) {
+func (permissionController *PermissionController) GetUserPermissions(c *gin.Context) {
 	userID := c.Param("user_id")
 	if userID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -327,7 +340,7 @@ func (pc *PermissionController) GetUserPermissions(c *gin.Context) {
 }
 
 // GetRolePermissions obtiene todos los permisos de un rol
-func (pc *PermissionController) GetRolePermissions(c *gin.Context) {
+func (permissionController *PermissionController) GetRolePermissions(c *gin.Context) {
 	roleIDParam := c.Param("role_id")
 	roleID, err := strconv.Atoi(roleIDParam)
 	if err != nil {

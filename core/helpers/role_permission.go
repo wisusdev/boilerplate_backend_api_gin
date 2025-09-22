@@ -1,8 +1,11 @@
 package helpers
 
 import (
+	"fmt"
 	"net/http"
 	"semita/core/roles_and_permissions/providers"
+
+	"github.com/gin-gonic/gin"
 )
 
 // RolePermissionHelper proporciona métodos auxiliares para verificar roles y permisos
@@ -20,6 +23,39 @@ func (rph *RolePermissionHelper) getUserIDFromRequest(request *http.Request) (st
 		return "", false
 	}
 	return user.ID, true
+}
+
+// getUserIDFromContext obtiene el ID del usuario autenticado desde el contexto de Gin
+// Funciona tanto para API (JWT) como para web (sesiones)
+func (rph *RolePermissionHelper) getUserIDFromContext(c *gin.Context) (string, bool) {
+	user, authenticated := GetAppAuthenticatedUser(c)
+	if !authenticated {
+		return "", false
+	}
+	return user.ID, true
+}
+
+// getGuardNameFromContext determina el guard correcto según el tipo de petición
+func (rph *RolePermissionHelper) getGuardNameFromContext(c *gin.Context, guardName ...string) string {
+	// Si se especifica un guard explícitamente, usarlo
+	if len(guardName) > 0 && guardName[0] != "" {
+		return guardName[0]
+	}
+
+	// Determinar automáticamente basado en el tipo de petición
+	authHeader := c.GetHeader("Authorization")
+	if authHeader != "" && len(authHeader) > 7 && authHeader[:7] == "Bearer " {
+		return "api"
+	}
+
+	contentType := c.GetHeader("Content-Type")
+	accept := c.GetHeader("Accept")
+
+	if contentType == "application/vnd.api+json" || accept == "application/vnd.api+json" {
+		return "api"
+	}
+
+	return "web"
 }
 
 // HasRole verifica si el usuario autenticado tiene un rol específico
@@ -270,4 +306,137 @@ func CanManagePermissions(request *http.Request) bool {
 
 func CanAccessDashboard(request *http.Request) bool {
 	return RolePermissionHelperInstance.CanAccessDashboard(request)
+}
+
+// ===============================================
+// FUNCIONES CON CONTEXTO GIN (PARA API Y WEB)
+// ===============================================
+
+// HasRoleGin verifica si el usuario autenticado tiene un rol específico usando contexto Gin
+func (rph *RolePermissionHelper) HasRoleGin(c *gin.Context, roleName string, guardName ...string) bool {
+	userID, authenticated := rph.getUserIDFromContext(c)
+	if !authenticated {
+		return false
+	}
+
+	guard := rph.getGuardNameFromContext(c, guardName...)
+
+	hasRole, err := providers.UserHasRoleByName(userID, roleName, guard)
+	if err != nil {
+		return false
+	}
+
+	return hasRole
+}
+
+// HasAnyRoleGin verifica si el usuario autenticado tiene al menos uno de los roles especificados usando contexto Gin
+func (rph *RolePermissionHelper) HasAnyRoleGin(c *gin.Context, roleNames []string, guardName ...string) bool {
+	userID, authenticated := rph.getUserIDFromContext(c)
+	if !authenticated {
+		return false
+	}
+
+	guard := rph.getGuardNameFromContext(c, guardName...)
+
+	hasAnyRole, err := providers.UserHasAnyRole(userID, roleNames, guard)
+	if err != nil {
+		return false
+	}
+
+	return hasAnyRole
+}
+
+// HasAllRolesGin verifica si el usuario autenticado tiene todos los roles especificados usando contexto Gin
+func (rph *RolePermissionHelper) HasAllRolesGin(c *gin.Context, roleNames []string, guardName ...string) bool {
+	userID, authenticated := rph.getUserIDFromContext(c)
+	if !authenticated {
+		return false
+	}
+
+	guard := rph.getGuardNameFromContext(c, guardName...)
+
+	hasAllRoles, err := providers.UserHasAllRoles(userID, roleNames, guard)
+	if err != nil {
+		return false
+	}
+
+	return hasAllRoles
+}
+
+// HasPermissionGin verifica si el usuario autenticado tiene un permiso específico usando contexto Gin
+func (rph *RolePermissionHelper) HasPermissionGin(c *gin.Context, permissionName string, guardName ...string) bool {
+	userID, authenticated := rph.getUserIDFromContext(c)
+
+	if !authenticated {
+		return false
+	}
+
+	guard := rph.getGuardNameFromContext(c, guardName...)
+
+	hasPermission, err := providers.UserHasPermission(userID, permissionName, guard)
+	fmt.Println("Checking permission:", permissionName, "for user:", userID, "with guard:", guard, "Result:", hasPermission, "Error:", err)
+	if err != nil {
+		return false
+	}
+
+	return hasPermission
+}
+
+// HasAnyPermissionGin verifica si el usuario autenticado tiene al menos uno de los permisos especificados usando contexto Gin
+func (rph *RolePermissionHelper) HasAnyPermissionGin(c *gin.Context, permissionNames []string, guardName ...string) bool {
+	userID, authenticated := rph.getUserIDFromContext(c)
+	if !authenticated {
+		return false
+	}
+
+	guard := rph.getGuardNameFromContext(c, guardName...)
+
+	hasAnyPermission, err := providers.UserHasAnyPermission(userID, permissionNames, guard)
+	if err != nil {
+		return false
+	}
+
+	return hasAnyPermission
+}
+
+// HasAllPermissionsGin verifica si el usuario autenticado tiene todos los permisos especificados usando contexto Gin
+func (rph *RolePermissionHelper) HasAllPermissionsGin(c *gin.Context, permissionNames []string, guardName ...string) bool {
+	userID, authenticated := rph.getUserIDFromContext(c)
+	if !authenticated {
+		return false
+	}
+
+	guard := rph.getGuardNameFromContext(c, guardName...)
+
+	hasAllPermissions, err := providers.UserHasAllPermissions(userID, permissionNames, guard)
+	if err != nil {
+		return false
+	}
+
+	return hasAllPermissions
+}
+
+// Funciones auxiliares globales para uso directo con contexto Gin
+func HasRoleGin(c *gin.Context, roleName string, guardName ...string) bool {
+	return RolePermissionHelperInstance.HasRoleGin(c, roleName, guardName...)
+}
+
+func HasAnyRoleGin(c *gin.Context, roleNames []string, guardName ...string) bool {
+	return RolePermissionHelperInstance.HasAnyRoleGin(c, roleNames, guardName...)
+}
+
+func HasAllRolesGin(c *gin.Context, roleNames []string, guardName ...string) bool {
+	return RolePermissionHelperInstance.HasAllRolesGin(c, roleNames, guardName...)
+}
+
+func HasPermissionGin(c *gin.Context, permissionName string, guardName ...string) bool {
+	return RolePermissionHelperInstance.HasPermissionGin(c, permissionName, guardName...)
+}
+
+func HasAnyPermissionGin(c *gin.Context, permissionNames []string, guardName ...string) bool {
+	return RolePermissionHelperInstance.HasAnyPermissionGin(c, permissionNames, guardName...)
+}
+
+func HasAllPermissionsGin(c *gin.Context, permissionNames []string, guardName ...string) bool {
+	return RolePermissionHelperInstance.HasAllPermissionsGin(c, permissionNames, guardName...)
 }

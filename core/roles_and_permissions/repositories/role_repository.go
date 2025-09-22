@@ -153,7 +153,7 @@ func AssignRoleToUser(userID string, roleID string) error {
 		return fmt.Errorf("user already has this role")
 	}
 
-	query := `INSERT INTO ` + userRolesTable + ` (user_id, role_id) VALUES (?, ?)`
+	query := `INSERT INTO ` + userRolesTable + ` (model_id, role_id, model_type) VALUES (?, ?, 'users')`
 	_, err = database.Exec(query, userID, roleID)
 	return err
 }
@@ -162,7 +162,7 @@ func RevokeRoleFromUser(userID string, roleID string) error {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
-	query := `DELETE FROM ` + userRolesTable + ` WHERE user_id = ? AND role_id = ?`
+	query := `DELETE FROM ` + userRolesTable + ` WHERE model_id = ? AND role_id = ? AND model_type = 'users'`
 	_, err := database.Exec(query, userID, roleID)
 	return err
 }
@@ -171,7 +171,7 @@ func UserHasRole(userID string, roleID string) (bool, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
-	query := `SELECT COUNT(*) FROM ` + userRolesTable + ` WHERE user_id = ? AND role_id = ?`
+	query := `SELECT COUNT(*) FROM ` + userRolesTable + ` WHERE model_id = ? AND role_id = ? AND model_type = 'users'`
 	var count int
 	err := database.QueryRow(query, userID, roleID).Scan(&count)
 	if err != nil {
@@ -192,8 +192,8 @@ func UserHasRoleByName(userID string, roleName string, guardName string) (bool, 
 	query := `
 		SELECT COUNT(*) 
 		FROM ` + userRolesTable + ` ur
-		INNER JOIN ` + rolesTable + ` r ON ur.role_id = r.id
-		WHERE ur.user_id = ? AND r.name = ? AND r.guard_name = ?
+		INNER JOIN ` + rolesTable + ` r ON ur.role_id = r.uuid
+		WHERE ur.model_id = ? AND ur.model_type = 'users' AND r.name = ? AND r.guard_name = ?
 	`
 	var count int
 	err := database.QueryRow(query, userID, roleName, guardName).Scan(&count)
@@ -222,8 +222,8 @@ func UserHasAnyRole(userID string, roleNames []string, guardName string) (bool, 
 	query := fmt.Sprintf(`
 		SELECT COUNT(*) 
 		FROM %s ur
-		INNER JOIN %s r ON ur.role_id = r.id
-		WHERE ur.user_id = ? AND r.name IN (%s) AND r.guard_name = ?
+		INNER JOIN %s r ON ur.role_id = r.uuid
+		WHERE ur.model_id = ? AND ur.model_type = 'users' AND r.name IN (%s) AND r.guard_name = ?
 	`, userRolesTable, rolesTable, placeholders)
 
 	args := make([]interface{}, 0, len(roleNames)+2)
@@ -260,8 +260,8 @@ func UserHasAllRoles(userID string, roleNames []string, guardName string) (bool,
 	query := fmt.Sprintf(`
 		SELECT COUNT(*) 
 		FROM %s ur
-		INNER JOIN %s r ON ur.role_id = r.id
-		WHERE ur.user_id = ? AND r.name IN (%s) AND r.guard_name = ?
+		INNER JOIN %s r ON ur.role_id = r.uuid
+		WHERE ur.model_id = ? AND ur.model_type = 'users' AND r.name IN (%s) AND r.guard_name = ?
 	`, userRolesTable, rolesTable, placeholders)
 
 	args := make([]interface{}, 0, len(roleNames)+2)

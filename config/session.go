@@ -9,6 +9,7 @@ type Session struct {
 	Secure   bool   `json:"secure"`    // Si la cookie es segura (HTTPS)
 	HttpOnly bool   `json:"http_only"` // Si la cookie es accesible solo por HTTP
 	SameSite string `json:"same_site"` // Política SameSite para la cookie ("Strict", "Lax", "None")
+	Guard    string `json:"guard"`     // Guard por defecto para la autenticación de API
 }
 
 func SessionConfig() *Session {
@@ -21,5 +22,6 @@ func SessionConfig() *Session {
 		Secure:   GetEnvBool("SESSION_SECURE", false),
 		HttpOnly: GetEnvBool("SESSION_HTTP_ONLY", true),
 		SameSite: GetEnv("SESSION_SAME_SITE", "Lax"),
+		Guard:    GetEnv("SESSION_API_GUARD", "api"),
 	}
 }

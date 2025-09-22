@@ -251,7 +251,7 @@ func AssignPermissionToUser(userID string, permissionID string) error {
 		return fmt.Errorf("user already has this direct permission")
 	}
 
-	query := `INSERT INTO ` + userPermissionsTable + ` (user_id, permission_id) VALUES (?, ?)`
+	query := `INSERT INTO ` + userPermissionsTable + ` (model_id, permission_id, model_type) VALUES (?, ?, 'users')`
 	_, err = database.Exec(query, userID, permissionID)
 	return err
 }
@@ -260,7 +260,7 @@ func RevokePermissionFromUser(userID string, permissionID string) error {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
-	query := `DELETE FROM ` + userPermissionsTable + ` WHERE user_id = ? AND permission_id = ?`
+	query := `DELETE FROM ` + userPermissionsTable + ` WHERE model_id = ? AND permission_id = ? AND model_type = 'users'`
 	_, err := database.Exec(query, userID, permissionID)
 	return err
 }
@@ -283,7 +283,7 @@ func UserHasDirectPermission(userID string, permissionID string) (bool, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
-	query := `SELECT COUNT(*) FROM ` + userPermissionsTable + ` WHERE user_id = ? AND permission_id = ?`
+	query := `SELECT COUNT(*) FROM ` + userPermissionsTable + ` WHERE model_id = ? AND permission_id = ? AND model_type = 'users'`
 	var count int
 	err := database.QueryRow(query, userID, permissionID).Scan(&count)
 	if err != nil {
@@ -303,22 +303,22 @@ func UserHasPermission(userID string, permissionName string, guardName string) (
 
 	query := `
 		SELECT COUNT(*) FROM (
-			(
-				SELECT 1 
-				FROM ` + userPermissionsTable + ` up
-				INNER JOIN ` + permissionsTable + ` p ON up.permission_id = p.id
-				WHERE up.user_id = ? AND p.name = ? AND p.guard_name = ?
-			)
+			SELECT 1 
+			FROM ` + userPermissionsTable + ` up
+			INNER JOIN ` + permissionsTable + ` p ON up.permission_id = p.uuid
+			WHERE up.model_id = ? AND up.model_type = 'users' AND p.name = ? AND p.guard_name = ?
 			UNION
-			(
-				SELECT 1 
-				FROM ` + userRolesTable + ` ur
-				INNER JOIN ` + rolePermissionsTable + ` rp ON ur.role_id = rp.role_id
-				INNER JOIN ` + permissionsTable + ` p ON rp.permission_id = p.id
-				WHERE ur.user_id = ? AND p.name = ? AND p.guard_name = ?
-			)
+			SELECT 1 
+			FROM ` + userRolesTable + ` ur
+			INNER JOIN ` + rolePermissionsTable + ` rp ON ur.role_id = rp.role_id
+			INNER JOIN ` + permissionsTable + ` p ON rp.permission_id = p.uuid
+			WHERE ur.model_id = ? AND ur.model_type = 'users' AND p.name = ? AND p.guard_name = ?
 		) AS combined_permissions
 	`
+	fmt.Println("UserId:", userID)
+	fmt.Println("PermissionName:", permissionName)
+	fmt.Println("GuardName:", guardName)
+	fmt.Println(query)
 	var count int
 	err := database.QueryRow(query, userID, permissionName, guardName, userID, permissionName, guardName).Scan(&count)
 	if err != nil {
@@ -348,16 +348,16 @@ func UserHasAnyPermission(userID string, permissionNames []string, guardName str
 			(
 				SELECT 1 
 				FROM %s up
-				INNER JOIN %s p ON up.permission_id = p.id
-				WHERE up.user_id = ? AND p.name IN (%s) AND p.guard_name = ?
+				INNER JOIN %s p ON up.permission_id = p.uuid
+				WHERE up.model_id = ? AND up.model_type = 'users' AND p.name IN (%s) AND p.guard_name = ?
 			)
 			UNION
 			(
 				SELECT 1 
 				FROM %s ur
 				INNER JOIN %s rp ON ur.role_id = rp.role_id
-				INNER JOIN %s p ON rp.permission_id = p.id
-				WHERE ur.user_id = ? AND p.name IN (%s) AND p.guard_name = ?
+				INNER JOIN %s p ON rp.permission_id = p.uuid
+				WHERE ur.model_id = ? AND ur.model_type = 'users' AND p.name IN (%s) AND p.guard_name = ?
 			)
 		) AS combined_permissions
 	`, userPermissionsTable, permissionsTable, placeholders, userRolesTable, rolePermissionsTable, permissionsTable, placeholders)
