@@ -10,13 +10,7 @@ var tableName = "users"
 // GetAllUsers obtiene todos los usuarios a través del repositorio
 func GetAllUsers() ([]models.UserStruct, error) {
 	repository := repositories.NewUserRepository()
-
-	var users []models.UserStruct
-	err := repository.GetAll(&users)
-	if err != nil {
-		return nil, err
-	}
-	return users, nil
+	return repository.GetAllUsers()
 }
 
 // StoreUser guarda un nuevo usuario a través del repositorio

@@ -38,53 +38,62 @@ func parseDateTime(dateStr string) time.Time {
 	return parsedTime
 }
 
-// parseDateTimePtr convierte una fecha string a *time.Time o nil si está vacía
-func parseDateTimePtr(dateStr string) *time.Time {
-	if dateStr == "" {
-		return nil
-	}
-	parsedTime, err := time.Parse("2006-01-02 15:04:05", dateStr)
-	if err != nil {
-		helpers.Logs("ERROR", "Error al parsear fecha: "+err.Error())
-		return nil
-	}
-	return &parsedTime
-}
-
 // scanUserRow escanea una fila de usuario y maneja la conversión de fechas
 func scanUserRow(scanner interface {
 	Scan(dest ...interface{}) error
 }) (models.UserStruct, error) {
 	var user models.UserStruct
 	var createdAtStr, updatedAtStr string
-	var emailVerifiedAtStr nulltypes.NullString
+	var emailVerifiedAt, deletedAt nulltypes.NullTime
 	var avatarPtr *string
+	var rememberTokenPtr *string
 
 	err := scanner.Scan(
-		&user.ID, &user.FirstName, &user.LastName, &user.Username,
-		&avatarPtr, &user.Language, &user.Email, &emailVerifiedAtStr, &user.Password,
-		&createdAtStr, &updatedAtStr,
+		&user.ID,
+		&user.FirstName,
+		&user.LastName,
+		&user.Username,
+		&avatarPtr,
+		&user.Language,
+		&user.Email,
+		&emailVerifiedAt,
+		&rememberTokenPtr,
+		&user.Password,
+		&createdAtStr,
+		&updatedAtStr,
+		&deletedAt,
 	)
 
 	if err != nil {
 		return models.UserStruct{}, err
 	}
 
+	// Convertir punteros nullable a NullString
+	if avatarPtr != nil {
+		user.Avatar = nulltypes.NullString{String: *avatarPtr, Valid: true}
+	} else {
+		user.Avatar = nulltypes.NullString{String: "", Valid: false}
+	}
+
+	if rememberTokenPtr != nil {
+		user.RememberToken = nulltypes.NullString{String: *rememberTokenPtr, Valid: true}
+	} else {
+		user.RememberToken = nulltypes.NullString{String: "", Valid: false}
+	}
+
 	// Convertir las fechas usando la función helper
 	user.CreatedAt = parseDateTime(createdAtStr)
 	user.UpdatedAt = parseDateTime(updatedAtStr)
 
-	if emailVerifiedAtStr.Valid && emailVerifiedAtStr.String != "" {
-		user.EmailVerifiedAt = parseDateTimePtr(emailVerifiedAtStr.String)
-	} else {
-		user.EmailVerifiedAt = nil // nil si no está verificado
-	}
+	// Convertir campos datetime nullable usando NullTime
+	user.EmailVerifiedAt = emailVerifiedAt.ToTimePtr()
+	user.DeletedAt = deletedAt.ToTimePtr()
 
 	return user, nil
 }
 
 func (r *UserRepository) Where(field string, value interface{}) ([]models.UserStruct, error) {
-	query := "SELECT id, first_name, last_name, username, avatar, language, email, email_verified_at, password, created_at, updated_at FROM users WHERE " + field + " = ?"
+	query := "SELECT id, first_name, last_name, username, avatar, language, email, email_verified_at, remember_token, password, created_at, updated_at, deleted_at FROM users WHERE " + field + " = ?"
 	rows, err := r.DB.Query(query, value)
 	if err != nil {
 		return nil, err
@@ -103,11 +112,26 @@ func (r *UserRepository) Where(field string, value interface{}) ([]models.UserSt
 }
 
 func (r *UserRepository) GetAllUsers() ([]models.UserStruct, error) {
-	var users models.Users
+	// Instanciamos la conexión a la base de datos
+	database := database_connections.DatabaseConnectSQL()
+	defer database.Close()
 
-	errorGetAll := r.GetAll(&users)
-	if errorGetAll != nil {
-		return nil, errorGetAll
+	// Preparamos la consulta para obtener todos los usuarios con columnas específicas
+	query := "SELECT id, first_name, last_name, username, avatar, language, email, email_verified_at, remember_token, password, created_at, updated_at, deleted_at FROM users"
+
+	rows, err := database.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []models.UserStruct
+	for rows.Next() {
+		user, err := scanUserRow(rows)
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, user)
 	}
 
 	return users, nil
@@ -123,7 +147,7 @@ func StoreUser(storeUser models.UserStruct) (user models.UserStruct, err error) 
 	storeUser.ID = id
 
 	// Preparamos la consulta para insertar un nuevo usuario
-	var query = "INSERT INTO " + userTable + " (id, first_name, last_name, username, email, password, language, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, 'es', NOW(), NOW())"
+	var query = "INSERT INTO " + userTable + " (id, first_name, last_name, username, email, password, language, created_at, updated_at, deleted_at) VALUES (?, ?, ?, ?, ?, ?, 'es', NOW(), NOW(), NOW())"
 
 	// Ejecutamos la consulta con los datos del usuario
 	_, errorErr := database.Exec(query, storeUser.ID, storeUser.FirstName, storeUser.LastName, storeUser.Username, storeUser.Email, storeUser.Password)
@@ -170,7 +194,7 @@ func GetUserByID(id string) (user models.UserStruct, err error) {
 	defer database.Close()
 
 	// Preparamos la consulta para obtener un usuario por su ID
-	var query = "SELECT id, first_name, last_name, username, avatar, language, email, email_verified_at, password, created_at, updated_at FROM " + userTable + " WHERE id = ?"
+	var query = "SELECT id, first_name, last_name, username, avatar, language, email, email_verified_at, remember_token, password, created_at, updated_at, deleted_at FROM " + userTable + " WHERE id = ?"
 
 	// Ejecutamos la consulta y obtenemos los resultados usando la función helper
 	user, err = scanUserRow(database.QueryRow(query, id))
@@ -189,7 +213,7 @@ func GetUserByEmail(email string) (user models.UserStruct, err error) {
 	defer database.Close()
 
 	// Preparamos la consulta para obtener un usuario por su email
-	var query = "SELECT id, first_name, last_name, username, avatar, language, email, email_verified_at, password, created_at, updated_at FROM " + userTable + " WHERE email = ?"
+	var query = "SELECT id, first_name, last_name, username, avatar, language, email, email_verified_at, remember_token, password, created_at, updated_at, deleted_at FROM " + userTable + " WHERE email = ?"
 
 	// Ejecutamos la consulta y obtenemos los resultados usando la función helper
 	user, err = scanUserRow(database.QueryRow(query, email))

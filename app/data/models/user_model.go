@@ -18,6 +18,7 @@ type UserStruct struct {
 	Password        string               `json:"password" db:"VARCHAR(255)" nullable:"false"`
 	CreatedAt       time.Time            `json:"created_at" db:"DATETIME" default:"CURRENT_TIMESTAMP"`
 	UpdatedAt       time.Time            `json:"updated_at" db:"DATETIME" default:"CURRENT_TIMESTAMP"`
+	DeletedAt       *time.Time           `json:"deleted_at" db:"DATETIME" nullable:"true" default:"NULL"`
 }
 
 type Users []UserStruct
