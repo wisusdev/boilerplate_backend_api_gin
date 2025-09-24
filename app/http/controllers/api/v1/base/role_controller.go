@@ -42,6 +42,15 @@ func (roleController *RoleController) Index(context *gin.Context) {
 
 // Show muestra un rol específico con sus permisos
 func (roleController *RoleController) Show(c *gin.Context) {
+
+	if !helpers.HasPermissionGin(c, "roles:show") {
+		c.JSON(http.StatusForbidden, gin.H{
+			"status":  "error",
+			"message": "You don't have permission to access this resource",
+		})
+		return
+	}
+
 	idParam := c.Param("id")
 	id, err := strconv.Atoi(idParam)
 	if err != nil {
@@ -83,6 +92,15 @@ func (roleController *RoleController) Show(c *gin.Context) {
 
 // Store crea un nuevo rol
 func (roleController *RoleController) Store(c *gin.Context) {
+
+	if !helpers.HasPermissionGin(c, "roles:store") {
+		c.JSON(http.StatusForbidden, gin.H{
+			"status":  "error",
+			"message": "You don't have permission to access this resource",
+		})
+		return
+	}
+
 	var roleData models.CreateRoleStruct
 	if err := c.ShouldBindJSON(&roleData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -111,6 +129,15 @@ func (roleController *RoleController) Store(c *gin.Context) {
 
 // Update actualiza un rol existente
 func (roleController *RoleController) Update(c *gin.Context) {
+
+	if !helpers.HasPermissionGin(c, "roles:update") {
+		c.JSON(http.StatusForbidden, gin.H{
+			"status":  "error",
+			"message": "You don't have permission to access this resource",
+		})
+		return
+	}
+
 	idParam := c.Param("id")
 	id, err := strconv.Atoi(idParam)
 	if err != nil {
@@ -149,6 +176,15 @@ func (roleController *RoleController) Update(c *gin.Context) {
 
 // Delete elimina un rol
 func (roleController *RoleController) Delete(c *gin.Context) {
+
+	if !helpers.HasPermissionGin(c, "roles:delete") {
+		c.JSON(http.StatusForbidden, gin.H{
+			"status":  "error",
+			"message": "You don't have permission to access this resource",
+		})
+		return
+	}
+
 	idParam := c.Param("id")
 	id, err := strconv.Atoi(idParam)
 	if err != nil {
