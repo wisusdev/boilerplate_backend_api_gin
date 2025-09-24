@@ -1,12 +1,13 @@
 package base
 
 import (
+	"boilerplate_backend_api_gin/app/http/requests"
 	"boilerplate_backend_api_gin/core/helpers"
 	"boilerplate_backend_api_gin/core/roles_and_permissions/models"
 	"boilerplate_backend_api_gin/core/roles_and_permissions/providers"
-	"boilerplate_backend_api_gin/core/roles_and_permissions/repositories"
+	"boilerplate_backend_api_gin/core/validators"
+	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -51,12 +52,11 @@ func (roleController *RoleController) Show(c *gin.Context) {
 		return
 	}
 
-	idParam := c.Param("id")
-	id, err := strconv.Atoi(idParam)
-	if err != nil {
+	id := c.Param("id")
+	if id == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
-			"message": "Invalid role ID",
+			"message": "Role ID is required",
 		})
 		return
 	}
@@ -65,7 +65,7 @@ func (roleController *RoleController) Show(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"status":  "error",
-			"message": "Role not found",
+			"message": fmt.Sprintf("Role not found: %v", err),
 		})
 		return
 	}
@@ -101,14 +101,17 @@ func (roleController *RoleController) Store(c *gin.Context) {
 		return
 	}
 
-	var roleData models.CreateRoleStruct
-	if err := c.ShouldBindJSON(&roleData); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  "error",
-			"message": "Invalid input data",
-			"errors":  err.Error(),
-		})
+	var request requests.RoleRequest
+
+	if err := validators.Validate(c, &request); err != nil {
 		return
+	}
+
+	// Convertir a la estructura interna
+	roleData := models.CreateRoleStruct{
+		Name:        request.Data.Attributes.Name,
+		GuardName:   "api", // por defecto para API
+		Permissions: request.Data.Attributes.Permissions,
 	}
 
 	role, err := providers.CreateRole(roleData)
@@ -139,26 +142,61 @@ func (roleController *RoleController) Update(c *gin.Context) {
 	}
 
 	idParam := c.Param("id")
-	id, err := strconv.Atoi(idParam)
-	if err != nil {
+
+	var request requests.RoleRequest
+
+	// Primero validar la estructura básica del JSON
+	if err := validators.Validate(c, &request); err != nil {
+		return
+	}
+
+	// Asignar el ID del parámetro al request para las validaciones
+	request.Data.ID = idParam
+
+	// Validar que el ID del URL coincida con el del body (si se proporciona en el body)
+	if request.Data.ID != "" && request.Data.ID != idParam {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
-			"message": "Invalid role ID",
+			"message": "ID in URL and body do not match",
 		})
 		return
 	}
 
-	var roleData models.CreateRoleStruct
-	if err := c.ShouldBindJSON(&roleData); err != nil {
+	// Validar el tipo de recurso
+	if request.Data.Type != "roles" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
-			"message": "Invalid input data",
-			"errors":  err.Error(),
+			"message": "Invalid resource type. Expected 'roles'",
 		})
 		return
 	}
 
-	role, err := repositories.UpdateRole(id, roleData)
+	// Validación personalizada para unicidad en actualización
+	// Verificar si existe otro rol con el mismo nombre excluyendo el actual
+	existingRole, err := providers.GetRoleByName(request.Data.Attributes.Name, "api")
+	if err == nil && existingRole.ID != idParam {
+		c.JSON(http.StatusBadRequest, gin.H{"errors": []gin.H{{
+			"status": "422",
+			"title":  "Validation Error",
+			"detail": "Ya existe otro rol con este nombre",
+			"source": gin.H{"pointer": "/data/attributes/name"},
+			"meta": gin.H{
+				"field":   "data.attributes.name",
+				"rule":    "unique",
+				"message": "Ya existe otro rol con este nombre",
+			},
+		}}})
+		return
+	}
+
+	// Convertir a la estructura interna
+	roleData := models.CreateRoleStruct{
+		Name:        request.Data.Attributes.Name,
+		GuardName:   "api", // por defecto para API
+		Permissions: request.Data.Attributes.Permissions,
+	}
+
+	role, err := providers.UpdateRoleByUUID(idParam, roleData)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "error",
@@ -185,17 +223,16 @@ func (roleController *RoleController) Delete(c *gin.Context) {
 		return
 	}
 
-	idParam := c.Param("id")
-	id, err := strconv.Atoi(idParam)
-	if err != nil {
+	id := c.Param("id")
+	if id == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
-			"message": "Invalid role ID",
+			"message": "Role ID is required",
 		})
 		return
 	}
 
-	err = providers.DeleteRole(id)
+	err := providers.DeleteRole(id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "error",

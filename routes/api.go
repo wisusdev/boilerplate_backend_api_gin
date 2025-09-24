@@ -38,16 +38,16 @@ func Api(router *gin.RouterGroup) {
 		// Rutas de roles
 		protected.GET("/roles", roleController.Index)
 		protected.GET("/roles/:id", roleController.Show)
-		protected.POST("/roles", middleware.RequirePermission("roles:store"), roleController.Store)
-		protected.PUT("/roles/:id", middleware.RequirePermission("roles:update"), roleController.Update)
-		protected.DELETE("/roles/:id", middleware.RequirePermission("roles:delete"), roleController.Delete)
+		protected.POST("/roles", roleController.Store)
+		protected.PATCH("/roles/:id", roleController.Update)
+		protected.DELETE("/roles/:id", roleController.Delete)
 
 		// Rutas de usuarios
 		protected.GET("/users", userController.Index)
 		protected.GET("/users/:id", userController.Show)
-		protected.POST("/users", middleware.RequirePermission("create-users"), userController.Store)
-		protected.PUT("/users/:id", middleware.RequirePermission("edit-users"), userController.Update)
-		protected.DELETE("/users/:id", middleware.RequirePermission("delete-users"), userController.Delete)
+		protected.POST("/users", userController.Store)
+		protected.PUT("/users/:id", userController.Update)
+		protected.DELETE("/users/:id", userController.Delete)
 
 		// Rutas de verificación de permisos
 		userPerms := protected.Group("/user-permissions")

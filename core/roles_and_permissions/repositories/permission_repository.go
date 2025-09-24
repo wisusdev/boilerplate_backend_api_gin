@@ -111,14 +111,14 @@ func DeletePermission(id int) error {
 	return err
 }
 
-func GetRolePermissions(roleID int) ([]models.PermissionStruct, error) {
+func GetRolePermissions(roleID string) ([]models.PermissionStruct, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
 	query := `
-		SELECT p.id, p.name, p.guard_name, p.created_at, p.updated_at 
+		SELECT p.uuid, p.name, p.guard_name, p.created_at, p.updated_at 
 		FROM ` + permissionsTable + ` p
-		INNER JOIN ` + rolePermissionsTable + ` rp ON p.id = rp.permission_id
+		INNER JOIN ` + rolePermissionsTable + ` rp ON p.uuid = rp.permission_id
 		WHERE rp.role_id = ?
 		ORDER BY p.name
 	`
@@ -396,4 +396,63 @@ func UserHasAllPermissions(userID string, permissionNames []string, guardName st
 	}
 
 	return true, nil
+}
+
+// ValidatePermissionsExist valida que todos los permisos en la lista existan en la base de datos
+// Retorna los permisos válidos y una lista de permisos inexistentes
+func ValidatePermissionsExist(permissionNames []string, guardName string) ([]models.PermissionStruct, []string, error) {
+	if len(permissionNames) == 0 {
+		return []models.PermissionStruct{}, []string{}, nil
+	}
+
+	database := database_connections.DatabaseConnectSQL()
+	defer database.Close()
+
+	if guardName == "" {
+		guardName = "api"
+	}
+
+	validPermissions := []models.PermissionStruct{}
+	invalidPermissions := []string{}
+
+	for _, permissionName := range permissionNames {
+		var permission models.PermissionStruct
+		query := `SELECT uuid, name, guard_name, created_at, updated_at FROM ` + permissionsTable + ` WHERE name = ? AND guard_name = ?`
+		err := database.QueryRow(query, permissionName, guardName).Scan(&permission.ID, &permission.Name, &permission.GuardName, &permission.CreatedAt, &permission.UpdatedAt)
+		if err != nil {
+			invalidPermissions = append(invalidPermissions, permissionName)
+		} else {
+			validPermissions = append(validPermissions, permission)
+		}
+	}
+
+	return validPermissions, invalidPermissions, nil
+}
+
+// AssignMultiplePermissionsToRole asigna múltiples permisos a un rol
+func AssignMultiplePermissionsToRole(roleID string, permissionIDs []string) error {
+	if len(permissionIDs) == 0 {
+		return nil
+	}
+
+	database := database_connections.DatabaseConnectSQL()
+	defer database.Close()
+
+	// Primero, limpiar los permisos actuales del rol
+	deleteQuery := `DELETE FROM ` + rolePermissionsTable + ` WHERE role_id = ?`
+	_, err := database.Exec(deleteQuery, roleID)
+	if err != nil {
+		return err
+	}
+
+	// Luego, insertar los nuevos permisos
+	for _, permissionID := range permissionIDs {
+		query := `INSERT INTO ` + rolePermissionsTable + ` (role_id, permission_id) VALUES (?, ?)`
+		_, err := database.Exec(query, roleID, permissionID)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

@@ -342,8 +342,7 @@ func (permissionController *PermissionController) GetUserPermissions(c *gin.Cont
 // GetRolePermissions obtiene todos los permisos de un rol
 func (permissionController *PermissionController) GetRolePermissions(c *gin.Context) {
 	roleIDParam := c.Param("role_id")
-	roleID, err := strconv.Atoi(roleIDParam)
-	if err != nil {
+	if roleIDParam == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
 			"message": "Invalid role ID",
@@ -351,7 +350,7 @@ func (permissionController *PermissionController) GetRolePermissions(c *gin.Cont
 		return
 	}
 
-	permissions, err := providers.GetRolePermissions(roleID)
+	permissions, err := providers.GetRolePermissions(roleIDParam)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "error",

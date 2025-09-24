@@ -63,7 +63,6 @@ func ValidateJSONAPIDocument() gin.HandlerFunc {
 
 				// Validar data.attributes si no es una ruta de relationships
 				if !strings.Contains(context.Request.URL.Path, "relationships") {
-					fmt.Println("Validando data.attributes:", doc.Data.Attributes)
 					if doc.Data.Attributes == nil {
 						context.AbortWithStatusJSON(400, gin.H{"error": "data.attributes es requerido"})
 						return
@@ -74,7 +73,6 @@ func ValidateJSONAPIDocument() gin.HandlerFunc {
 			if method == "PATCH" {
 				// Validar data.id
 				if doc.Data.ID == "" {
-					fmt.Println("Validando data.id:", doc.Data.ID)
 					context.AbortWithStatusJSON(400, gin.H{"error": "data.id es requerido para PATCH"})
 					return
 				}

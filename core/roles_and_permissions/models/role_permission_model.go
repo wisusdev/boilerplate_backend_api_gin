@@ -36,8 +36,25 @@ type UserWithRolesAndPermissions struct {
 
 // CreateRoleStruct para crear nuevos roles
 type CreateRoleStruct struct {
-	Name      string `json:"name" binding:"required"`
-	GuardName string `json:"guard_name"`
+	Name        string   `json:"name" binding:"required"`
+	GuardName   string   `json:"guard_name"`
+	Permissions []string `json:"permissions,omitempty"`
+}
+
+// JsonApiRoleRequest estructura para manejar requests JSON API de roles
+type JsonApiRoleRequest struct {
+	Data JsonApiRoleData `json:"data" binding:"required"`
+}
+
+type JsonApiRoleData struct {
+	Type       string                `json:"type" binding:"required"`
+	ID         string                `json:"id,omitempty"`
+	Attributes JsonApiRoleAttributes `json:"attributes" binding:"required"`
+}
+
+type JsonApiRoleAttributes struct {
+	Name        string   `json:"name" binding:"required"`
+	Permissions []string `json:"permissions,omitempty"`
 }
 
 // CreatePermissionStruct para crear nuevos permisos

@@ -36,7 +36,7 @@ func DeletePermission(id int) error {
 }
 
 // GetRolePermissions obtiene todos los permisos de un rol
-func GetRolePermissions(roleID int) ([]models.PermissionStruct, error) {
+func GetRolePermissions(roleID string) ([]models.PermissionStruct, error) {
 	return repositories.GetRolePermissions(roleID)
 }
 
@@ -93,4 +93,14 @@ func UserHasAnyPermission(userID string, permissionNames []string, guardName str
 // UserHasAllPermissions verifica si un usuario tiene todos los permisos especificados
 func UserHasAllPermissions(userID string, permissionNames []string, guardName string) (bool, error) {
 	return repositories.UserHasAllPermissions(userID, permissionNames, guardName)
+}
+
+// ValidatePermissionsExist valida que todos los permisos en la lista existan en la base de datos
+func ValidatePermissionsExist(permissionNames []string, guardName string) ([]models.PermissionStruct, []string, error) {
+	return repositories.ValidatePermissionsExist(permissionNames, guardName)
+}
+
+// AssignMultiplePermissionsToRole asigna múltiples permisos a un rol
+func AssignMultiplePermissionsToRole(roleID string, permissionIDs []string) error {
+	return repositories.AssignMultiplePermissionsToRole(roleID, permissionIDs)
 }

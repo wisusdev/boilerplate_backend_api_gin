@@ -34,12 +34,28 @@ func GetAllRoles() ([]models.RoleStruct, error) {
 	return roles, nil
 }
 
-func GetRoleByID(id int) (*models.RoleStruct, error) {
+func GetRoleByID(id string) (*models.RoleStruct, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
-	query := `SELECT id, name, guard_name, created_at, updated_at FROM ` + rolesTable + ` WHERE id = ?`
+	query := `SELECT uuid, name, guard_name, created_at, updated_at FROM ` + rolesTable + ` WHERE uuid = ?`
 	row := database.QueryRow(query, id)
+
+	var role models.RoleStruct
+	err := row.Scan(&role.ID, &role.Name, &role.GuardName, &role.CreatedAt, &role.UpdatedAt)
+	if err != nil {
+		return nil, err
+	}
+
+	return &role, nil
+}
+
+func GetRoleByUUID(uuid string) (*models.RoleStruct, error) {
+	database := database_connections.DatabaseConnectSQL()
+	defer database.Close()
+
+	query := `SELECT uuid, name, guard_name, created_at, updated_at FROM ` + rolesTable + ` WHERE uuid = ?`
+	row := database.QueryRow(query, uuid)
 
 	var role models.RoleStruct
 	err := row.Scan(&role.ID, &role.Name, &role.GuardName, &role.CreatedAt, &role.UpdatedAt)
@@ -71,24 +87,64 @@ func CreateRole(roleData models.CreateRoleStruct) (*models.RoleStruct, error) {
 	defer database.Close()
 
 	if roleData.GuardName == "" {
-		roleData.GuardName = "web"
+		roleData.GuardName = "api"
 	}
 
-	query := `INSERT INTO ` + rolesTable + ` (name, guard_name) VALUES (?, ?, ?)`
-	result, err := database.Exec(query, roleData.Name, roleData.GuardName)
-	if err != nil {
-		return nil, err
-	}
+	// Validar permisos si se proporcionaron
+	if len(roleData.Permissions) > 0 {
+		validPermissions, invalidPermissions, err := ValidatePermissionsExist(roleData.Permissions, roleData.GuardName)
+		if err != nil {
+			return nil, err
+		}
+		if len(invalidPermissions) > 0 {
+			return nil, fmt.Errorf("los siguientes permisos no existen: %s", strings.Join(invalidPermissions, ", "))
+		}
 
-	id, err := result.LastInsertId()
-	if err != nil {
-		return nil, err
-	}
+		// Crear el rol
+		query := `INSERT INTO ` + rolesTable + ` (uuid, name, guard_name, created_at, updated_at) VALUES (UUID(), ?, ?, NOW(), NOW())`
+		_, err = database.Exec(query, roleData.Name, roleData.GuardName)
+		if err != nil {
+			return nil, err
+		}
 
-	return GetRoleByID(int(id))
+		// Obtener el UUID del rol recién creado
+		var roleUUID string
+		err = database.QueryRow("SELECT uuid FROM "+rolesTable+" WHERE name = ? AND guard_name = ? ORDER BY created_at DESC LIMIT 1", roleData.Name, roleData.GuardName).Scan(&roleUUID)
+		if err != nil {
+			return nil, err
+		}
+
+		// Asignar permisos al rol
+		for _, permission := range validPermissions {
+			assignQuery := `INSERT INTO ` + rolePermissionsTable + ` (role_id, permission_id) VALUES (?, ?)`
+			_, err := database.Exec(assignQuery, roleUUID, permission.ID)
+			if err != nil {
+				return nil, fmt.Errorf("error al asignar permiso %s al rol: %v", permission.Name, err)
+			}
+		}
+
+		// Retornar el rol creado
+		return GetRoleByUUID(roleUUID)
+	} else {
+		// Crear rol sin permisos
+		query := `INSERT INTO ` + rolesTable + ` (uuid, name, guard_name, created_at, updated_at) VALUES (UUID(), ?, ?, NOW(), NOW())`
+		_, err := database.Exec(query, roleData.Name, roleData.GuardName)
+		if err != nil {
+			return nil, err
+		}
+
+		// Obtener el rol recién creado
+		var roleUUID string
+		err = database.QueryRow("SELECT uuid FROM "+rolesTable+" WHERE name = ? AND guard_name = ? ORDER BY created_at DESC LIMIT 1", roleData.Name, roleData.GuardName).Scan(&roleUUID)
+		if err != nil {
+			return nil, err
+		}
+
+		return GetRoleByUUID(roleUUID)
+	}
 }
 
-func UpdateRole(id int, roleData models.CreateRoleStruct) (*models.RoleStruct, error) {
+func UpdateRole(id string, roleData models.CreateRoleStruct) (*models.RoleStruct, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
@@ -101,11 +157,64 @@ func UpdateRole(id int, roleData models.CreateRoleStruct) (*models.RoleStruct, e
 	return GetRoleByID(id)
 }
 
-func DeleteRole(id int) error {
+func UpdateRoleByUUID(uuid string, roleData models.CreateRoleStruct) (*models.RoleStruct, error) {
 	database := database_connections.DatabaseConnectSQL()
 	defer database.Close()
 
-	query := `DELETE FROM ` + rolesTable + ` WHERE id = ?`
+	if roleData.GuardName == "" {
+		roleData.GuardName = "api"
+	}
+
+	// Validar permisos si se proporcionaron
+	if len(roleData.Permissions) > 0 {
+		validPermissions, invalidPermissions, err := ValidatePermissionsExist(roleData.Permissions, roleData.GuardName)
+		if err != nil {
+			return nil, err
+		}
+		if len(invalidPermissions) > 0 {
+			return nil, fmt.Errorf("los siguientes permisos no existen: %s", strings.Join(invalidPermissions, ", "))
+		}
+
+		// Actualizar el rol
+		query := `UPDATE ` + rolesTable + ` SET name = ?, updated_at = NOW() WHERE uuid = ?`
+		_, err = database.Exec(query, roleData.Name, uuid)
+		if err != nil {
+			return nil, err
+		}
+
+		// Actualizar permisos del rol (eliminar los antiguos y agregar los nuevos)
+		// Primero eliminar permisos actuales
+		deleteQuery := `DELETE FROM ` + rolePermissionsTable + ` WHERE role_id = ?`
+		_, err = database.Exec(deleteQuery, uuid)
+		if err != nil {
+			return nil, err
+		}
+
+		// Luego asignar los nuevos permisos
+		for _, permission := range validPermissions {
+			assignQuery := `INSERT INTO ` + rolePermissionsTable + ` (role_id, permission_id) VALUES (?, ?)`
+			_, err = database.Exec(assignQuery, uuid, permission.ID)
+			if err != nil {
+				return nil, fmt.Errorf("error al asignar permiso %s al rol: %v", permission.Name, err)
+			}
+		}
+	} else {
+		// Solo actualizar el rol sin modificar permisos
+		query := `UPDATE ` + rolesTable + ` SET name = ?, updated_at = NOW() WHERE uuid = ?`
+		_, err := database.Exec(query, roleData.Name, uuid)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return GetRoleByUUID(uuid)
+}
+
+func DeleteRole(id string) error {
+	database := database_connections.DatabaseConnectSQL()
+	defer database.Close()
+
+	query := `DELETE FROM ` + rolesTable + ` WHERE uuid = ?`
 	_, err := database.Exec(query, id)
 	return err
 }

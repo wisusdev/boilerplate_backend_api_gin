@@ -11,8 +11,13 @@ func GetAllRoles() ([]models.RoleStruct, error) {
 }
 
 // GetRoleByID obtiene un rol por su ID
-func GetRoleByID(id int) (*models.RoleStruct, error) {
+func GetRoleByID(id string) (*models.RoleStruct, error) {
 	return repositories.GetRoleByID(id)
+}
+
+// GetRoleByUUID obtiene un rol por su UUID
+func GetRoleByUUID(uuid string) (*models.RoleStruct, error) {
+	return repositories.GetRoleByUUID(uuid)
 }
 
 // GetRoleByName obtiene un rol por su nombre
@@ -26,12 +31,17 @@ func CreateRole(role models.CreateRoleStruct) (*models.RoleStruct, error) {
 }
 
 // UpdateRole actualiza un rol existente
-func UpdateRole(id int, role models.CreateRoleStruct) (*models.RoleStruct, error) {
+func UpdateRole(id string, role models.CreateRoleStruct) (*models.RoleStruct, error) {
 	return repositories.UpdateRole(id, role)
 }
 
+// UpdateRoleByUUID actualiza un rol existente usando UUID
+func UpdateRoleByUUID(uuid string, role models.CreateRoleStruct) (*models.RoleStruct, error) {
+	return repositories.UpdateRoleByUUID(uuid, role)
+}
+
 // DeleteRole elimina un rol
-func DeleteRole(id int) error {
+func DeleteRole(id string) error {
 	return repositories.DeleteRole(id)
 }
 
