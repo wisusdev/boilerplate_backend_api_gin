@@ -13,6 +13,7 @@ func Api(router *gin.RouterGroup) {
 	roleController := &base.RoleController{}
 	permissionController := &base.PermissionController{}
 	userPermissionController := &base.UserPermissionController{}
+	userController := &base.UserController{}
 
 	authRouter := router.Group("/auth")
 	{
@@ -37,9 +38,16 @@ func Api(router *gin.RouterGroup) {
 		// Rutas de roles
 		protected.GET("/roles", roleController.Index)
 		protected.GET("/roles/:id", roleController.Show)
-		protected.POST("/roles", middleware.RequirePermission("create-roles"), roleController.Store)
-		protected.PUT("/roles/:id", middleware.RequirePermission("edit-roles"), roleController.Update)
-		protected.DELETE("/roles/:id", middleware.RequirePermission("delete-roles"), roleController.Delete)
+		protected.POST("/roles", middleware.RequirePermission("roles:store"), roleController.Store)
+		protected.PUT("/roles/:id", middleware.RequirePermission("roles:update"), roleController.Update)
+		protected.DELETE("/roles/:id", middleware.RequirePermission("roles:delete"), roleController.Delete)
+
+		// Rutas de usuarios
+		protected.GET("/users", userController.Index)
+		protected.GET("/users/:id", userController.Show)
+		protected.POST("/users", middleware.RequirePermission("create-users"), userController.Store)
+		protected.PUT("/users/:id", middleware.RequirePermission("edit-users"), userController.Update)
+		protected.DELETE("/users/:id", middleware.RequirePermission("delete-users"), userController.Delete)
 
 		// Rutas de verificación de permisos
 		userPerms := protected.Group("/user-permissions")
