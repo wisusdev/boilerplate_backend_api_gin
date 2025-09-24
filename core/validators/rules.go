@@ -606,3 +606,67 @@ func getNestedFieldValue(data map[string]interface{}, fieldPath string) (interfa
 
 	return nil, false
 }
+
+// ArrayExistsRule valida que todos los elementos de un array existan en la base de datos
+type ArrayExistsRule struct {
+	Table  string
+	Column string
+	DB     database_connections.SQLAdapter
+}
+
+func (r *ArrayExistsRule) Name() string {
+	return "array_exists"
+}
+
+func (r *ArrayExistsRule) Validate(value interface{}, data map[string]interface{}) error {
+	if value == nil {
+		return nil // Si es nil, no validar (usar Required si es necesario)
+	}
+
+	if r.DB == nil {
+		return fmt.Errorf("database connection not provided for array exists validation")
+	}
+
+	// Convertir el valor a slice de strings
+	valueOf := reflect.ValueOf(value)
+	if valueOf.Kind() != reflect.Slice && valueOf.Kind() != reflect.Array {
+		return fmt.Errorf("the field must be an array")
+	}
+
+	if valueOf.Len() == 0 {
+		return nil // Array vacío, no hay nada que validar
+	}
+
+	var stringValues []string
+	var invalidItems []string
+
+	// Convertir todos los elementos a strings
+	for i := 0; i < valueOf.Len(); i++ {
+		item := valueOf.Index(i).Interface()
+		if str, ok := item.(string); ok {
+			stringValues = append(stringValues, str)
+		} else {
+			return fmt.Errorf("all array elements must be strings")
+		}
+	}
+
+	// Validar cada elemento en la base de datos
+	for _, item := range stringValues {
+		query := fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE %s = ?", r.Table, r.Column)
+		var count int64
+		err := r.DB.QueryRow(query, item).Scan(&count)
+		if err != nil {
+			return fmt.Errorf("database error: %v", err)
+		}
+
+		if count == 0 {
+			invalidItems = append(invalidItems, item)
+		}
+	}
+
+	if len(invalidItems) > 0 {
+		return fmt.Errorf("los siguientes elementos no existen: %s", strings.Join(invalidItems, ", "))
+	}
+
+	return nil
+}

@@ -180,6 +180,14 @@ func (validator *Validator) Validate(data interface{}) *ValidationResult {
 			if ur, ok := rule.(*UniqueRule); ok {
 				ur.DB = validator.db
 			}
+			// Set DB for ExistsRule
+			if er, ok := rule.(*ExistsRule); ok {
+				er.DB = validator.db
+			}
+			// Set DB for ArrayExistsRule
+			if aer, ok := rule.(*ArrayExistsRule); ok {
+				aer.DB = validator.db
+			}
 			if err := rule.Validate(value, dataMap); err != nil {
 				validationError := &ValidationError{
 					Field:   fieldName,
@@ -315,6 +323,16 @@ func (f *FieldValidator) Unique(table, column string, except ...interface{}) *Fi
 // Exists valida que el valor exista en la base de datos
 func (f *FieldValidator) Exists(table, column string) *FieldValidator {
 	f.rules = append(f.rules, &ExistsRule{
+		Table:  table,
+		Column: column,
+		DB:     f.validator.db,
+	})
+	return f
+}
+
+// ArrayExists valida que todos los elementos de un array existan en la base de datos
+func (f *FieldValidator) ArrayExists(table, column string) *FieldValidator {
+	f.rules = append(f.rules, &ArrayExistsRule{
 		Table:  table,
 		Column: column,
 		DB:     f.validator.db,
